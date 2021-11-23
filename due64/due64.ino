@@ -10,15 +10,11 @@
 
 volatile uint8_t uart_data[5];				//volatile because might update controller data with interrupts
 volatile uint8_t* volatile uart_data_ptr;	//volatile volatile, volatile
-volatile uint8_t tx_counter = 0;		//how many bytes have been tx'd so far
 volatile uint8_t total_tx_count = 0;	//how many bytes to tx
-void reset_tx_counter() { tx_counter = 0; }
 
-void enable_rx_rdy_interrupt() { REG_UART_IER |= 1; }
-void disable_rx_rdy_interrupt() { REG_UART_IDR |= 1; }
-void enable_tx_rdy_interrupt() { REG_UART_IER |= (1 << 1); }
-void disable_tx_rdy_interrupt() { REG_UART_IDR |= (1 << 1); }
 
+uint8_t status_response[3] = { 0x05, 0x00, 0x00 };
+uint8_t status_counter = 3;
 
 void setup() {
 	//Pin setup
@@ -37,14 +33,11 @@ void setup() {
 	*/
 	uart_set_clk_div(21);
 	uart_set_parity_ch_mode();
-	/*
-	UART interrupts used :
-	RX_RDY - RX ready - used to start tx by writing to TX holding register
-	TX_RDY - TX ready - used to continue TX by writing to TX register
-		Note: Count the number of tx, then compare tx_count to desired number of tx
-	*/
+	//Interrupts and PDC setup
+	REG_UART_TNCR = 0;	//tx next counter = 0
+	REG_UART_RNCR = 0;	//rx next counter = 0;
 	REG_UART_IDR = ~0;
-	enable_rx_rdy_interrupt();
+	REG_UART_IER = 1;	//enable rxrdy interrupt (data received has not been read yet)
 	NVIC_ClearPendingIRQ(UART_IRQn);
 	NVIC_SetPriority(UART_IRQn, 0);
 	NVIC_EnableIRQ(UART_IRQn);
@@ -53,27 +46,14 @@ void setup() {
 
 
 void UART_Handler() {
-	if (REG_UART_SR & (1 << 1)) {
-		//TX_RDY interrupt
-		if (tx_counter < total_tx_count) {
-			disable_tx_rdy_interrupt();
-			reset_tx_counter();
-			enable_rx_rdy_interrupt();
-			return;
-		}
-		else {
-			uart_write_tx(0);
-			++tx_counter;
-		}
-	}
-	else {
-		//RX_RDY interrupt
-		/*
-		Note: N64 is MSB first, UART is LSB first
-		That means the received UART data is "mirrored"
-		*/
+	switch (REG_UART_SR) {
+	case 1:		//RXRDY bit
 		switch (REG_UART_RHR) {
 		case 0x0:	//status - controller sends 3 bytes: 0x05, 0x00, 0x00 (bitflags)
+			REG_UART_TPR = (uint32_t)status_response;
+			REG_UART_TCR = 3;
+			REG_UART_IER = (1 << 11);	//Enable TXBUFE interrupt
+			REG_UART_THR = *status_response;
 			break;
 
 		case 0xFE:	//poll - controller sends 4 bytes
@@ -88,11 +68,11 @@ void UART_Handler() {
 		case 0xFF:	//reset - controller responds identically to command 0x00
 			break;
 		}
-		disable_rx_rdy_interrupt();
-		uart_write_tx(0);
-		enable_tx_rdy_interrupt();
+	case (1 << 11):	//TXBUFE bit
+		REG_UART_IDR = (1 << 11);	//disable TXBUFE interrupt
+		REG_UART_IER = 1;			//Enable RXRDY interrupt
+		break;
 	}
-
 }
 
 void loop() {
