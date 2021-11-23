@@ -13,7 +13,7 @@ volatile uint8_t* volatile uart_data_ptr;	//volatile volatile, volatile
 volatile uint8_t total_tx_count = 0;	//how many bytes to tx
 
 
-uint8_t status_response[3] = { 0x05, 0x00, 0x00 };
+uint8_t status_response[3] = { 237, 0x00, 0x00 };
 uint8_t status_counter = 3;
 
 void setup() {
@@ -45,15 +45,14 @@ void setup() {
 }
 
 
+volatile uint8_t rx_read;
 void UART_Handler() {
+	rx_read = REG_UART_RHR;
 	switch (REG_UART_SR) {
 	case 1:		//RXRDY bit
-		switch (REG_UART_RHR) {
+		switch (rx_read){
 		case 0x0:	//status - controller sends 3 bytes: 0x05, 0x00, 0x00 (bitflags)
-			REG_UART_TPR = (uint32_t)status_response;
-			REG_UART_TCR = 3;
-			REG_UART_IER = (1 << 11);	//Enable TXBUFE interrupt
-			REG_UART_THR = *status_response;
+
 			break;
 
 		case 0xFE:	//poll - controller sends 4 bytes
@@ -71,6 +70,12 @@ void UART_Handler() {
 	case (1 << 11):	//TXBUFE bit
 		REG_UART_IDR = (1 << 11);	//disable TXBUFE interrupt
 		REG_UART_IER = 1;			//Enable RXRDY interrupt
+		break;
+	default:
+		REG_UART_TPR = (uint32_t)status_response;
+		REG_UART_TCR = 3;
+		REG_UART_IER = (1 << 11);	//Enable TXBUFE interrupt
+		REG_UART_THR = *status_response;
 		break;
 	}
 }
