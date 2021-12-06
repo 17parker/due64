@@ -9,25 +9,30 @@
 
 #include "SAM3XDUE.h"
 
+volatile uint32_t uart_read = 0;
 const uint16_t one = 7;
 const uint16_t zro = 21;
 const uint16_t stop = 14;
 const uint16_t off = 0;
 const uint16_t b[2] = { zro, one };
 
-uint16_t status_response[25] = { b[0], b[0], b[0], b[0], b[0], b[1], b[0], b[1],	//0x05
+uint16_t status_response[26] = { b[0], b[0], b[0], b[0], b[0], b[1], b[0], b[1],	//0x05
 								 b[0], b[0], b[0], b[0], b[0], b[0], b[0], b[0],	//0x00
 								 b[0], b[0], b[0], b[0], b[0], b[0], b[0], b[0],	//0x00
-								 stop };
-uint16_t status_count = 25;
+								 stop, off };
+uint16_t status_count = 26;
 
+uint16_t rx_fail[10] = { stop, stop, stop, stop, stop, stop, stop, stop,
+						 stop, off };
+uint16_t rx_fail_count = 10;
 
 /*
 controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
 In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 */
 
-volatile uint16_t controller_data[33];
+volatile uint16_t controller_data[34];
+volatile uint16_t controller_count = 34;
 
 void setup() {
 	for (uint8_t i = 0; i < 32; i++) {
@@ -35,6 +40,7 @@ void setup() {
 	}
 	controller_data[0] = one;
 	controller_data[32] = stop;
+	controller_data[33] = off;
 	//Pin setup
 	pio_disable_pullup(PIOA, UTXD | URXD);
 	pio_enable_output(PIOA, UTXD);
@@ -54,45 +60,55 @@ void setup() {
 	REG_PWM_CPRD0 = 28;
 	REG_PWM_CDTY0 = off;
 	REG_PWM_TPR = (uint32_t)status_response;
-	REG_PWM_TCR = 25;
+	REG_PWM_TCR = status_count;
 	REG_PWM_PTCR = (1 << 8);
 	REG_PWM_IER2 |= (1 << 2);
 	NVIC_ClearPendingIRQ(PWM_IRQn);
 	NVIC_SetPriority(PWM_IRQn, 1);
-	NVIC_EnableIRQ(PWM_IRQn);
-	REG_PWM_ENA |= 1;
+
 	/*
 	Baud rate = MCK / (16 * CD)
 	N64 controller BAUD rate = 250kHz
 	250,000 = 84,000,000/(16 * CD) --> CD = 21
 	*/
-	uart_set_clk_div(21);
+	uart_set_clk_div(22);
 	uart_set_parity_ch_mode();
+	/*
+	REG_UART_RPR = (uint32_t)(&uart_read);
+	REG_UART_RCR = 1;
 	REG_UART_TNCR = 0;
-	REG_UART_RNCR = 0;
+	REG_UART_RNCR = (uint32_t)(&uart_read);
+	*/
 	REG_UART_IDR = ~0;
-	REG_UART_IER = 1;	//enable rxrdy interrupt (data received has not been read yet)
+	REG_UART_IER = 1;
 	NVIC_ClearPendingIRQ(UART_IRQn);
 	NVIC_SetPriority(UART_IRQn, 0);
 	NVIC_EnableIRQ(UART_IRQn);
 	uart_enable_rx();
+	NVIC_EnableIRQ(PWM_IRQn);
+	REG_PWM_ENA |= 1;
 }
 
 
 void PWM_Handler() {
 	volatile uint32_t dummy = REG_PWM_ISR2;
-	REG_PWM_CDTY0 = off;
 	//read controller data for next frame
+	//REG_UART_RPR = (uint32_t)(&uart_read);
+	//REG_UART_RCR = 1;
 }
 
 void UART_Handler() {
-	switch (REG_UART_RHR) {
-	case 0x0:	//status - controller sends 3 bytes: 0x05, 0x00, 0x00 (bitflags)
+	volatile uint32_t uart_read = REG_UART_RHR;
+	uart_read = (uart_read << 1) & 0b11111111;
+	switch (uart_read) {
+	case 0x00:	//status - controller sends 3 bytes: 0x05, 0x00, 0x00 (bitflags)
 		REG_PWM_TPR = (uint32_t)status_response;
-		REG_PWM_TCR = 25;
+		REG_PWM_TCR = status_count;
 		break;
 
-	case 0xFE:	//poll - controller sends 4 bytes
+	case 0x80:	//poll - controller sends 4 bytes
+		REG_PWM_TPR = (uint32_t)controller_data;
+		REG_PWM_TCR = controller_count;
 		break;
 
 	case 0xFD:	//read - controller returns 33 bytes of 0x00
@@ -103,9 +119,25 @@ void UART_Handler() {
 
 	case 0xFF:	//reset - controller responds identically to command 0x00
 		break;
+	default:
+		rx_fail[0] = b[uart_read & 1];
+		uart_read = uart_read >> 1;
+		rx_fail[1] = b[uart_read & 1];
+		uart_read = uart_read >> 1;
+		rx_fail[2] = b[uart_read & 1];
+		uart_read = uart_read >> 1;
+		rx_fail[3] = b[uart_read & 1];
+		uart_read = uart_read >> 1;
+		rx_fail[4] = b[uart_read & 1];
+		uart_read = uart_read >> 1;
+		rx_fail[5] = b[uart_read & 1];
+		uart_read = uart_read >> 1;
+		rx_fail[6] = b[uart_read & 1];
+		uart_read = uart_read >> 1;
+		rx_fail[7] = b[uart_read & 1];
+		REG_PWM_TPR = (uint32_t)rx_fail;
+		REG_PWM_TCR = rx_fail_count;
 	}
-	REG_PWM_TPR = (uint32_t)status_response;
-	REG_PWM_TCR = 25;
 }
 
 void loop() {
