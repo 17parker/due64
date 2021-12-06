@@ -9,7 +9,6 @@
 
 #include "SAM3XDUE.h"
 
-volatile uint32_t uart_read = 0;
 const uint16_t one = 7;
 const uint16_t zro = 21;
 const uint16_t stop = 14;
@@ -70,15 +69,10 @@ void setup() {
 	Baud rate = MCK / (16 * CD)
 	N64 controller BAUD rate = 250kHz
 	250,000 = 84,000,000/(16 * CD) --> CD = 21
+	21 + 1 = 22 because the n64 is closer to 240kHz
 	*/
 	uart_set_clk_div(22);
 	uart_set_parity_ch_mode();
-	/*
-	REG_UART_RPR = (uint32_t)(&uart_read);
-	REG_UART_RCR = 1;
-	REG_UART_TNCR = 0;
-	REG_UART_RNCR = (uint32_t)(&uart_read);
-	*/
 	REG_UART_IDR = ~0;
 	REG_UART_IER = 1;
 	NVIC_ClearPendingIRQ(UART_IRQn);
@@ -92,12 +86,12 @@ void setup() {
 
 void PWM_Handler() {
 	volatile uint32_t dummy = REG_PWM_ISR2;
+	uart_enable_rx();
 	//read controller data for next frame
-	//REG_UART_RPR = (uint32_t)(&uart_read);
-	//REG_UART_RCR = 1;
 }
 
 void UART_Handler() {
+	uart_disable_rx();
 	volatile uint32_t uart_read = REG_UART_RHR;
 	uart_read = (uart_read << 1) & 0b11111111;
 	switch (uart_read) {
@@ -111,15 +105,18 @@ void UART_Handler() {
 		REG_PWM_TCR = controller_count;
 		break;
 
-	case 0xFD:	//read - controller returns 33 bytes of 0x00
+	case 0x40:	//read - controller returns 33 bytes of 0x00
 		break;
 
-	case 0xFC:	//write - please don't make me do it
+	case 0xC0:	//write - please don't make me do it
 		break;
 
 	case 0xFF:	//reset - controller responds identically to command 0x00
 		break;
 	default:
+		REG_PWM_TPR = (uint32_t)controller_data;
+		REG_PWM_TCR = controller_count;
+	/*default:
 		rx_fail[0] = b[uart_read & 1];
 		uart_read = uart_read >> 1;
 		rx_fail[1] = b[uart_read & 1];
@@ -137,6 +134,7 @@ void UART_Handler() {
 		rx_fail[7] = b[uart_read & 1];
 		REG_PWM_TPR = (uint32_t)rx_fail;
 		REG_PWM_TCR = rx_fail_count;
+		*/
 	}
 }
 
