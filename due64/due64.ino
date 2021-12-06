@@ -41,10 +41,10 @@ void setup() {
 	pio_disable_output(PIOA, URXD);
 	pio_set_periph_mode_A(PIOA, UTXD | URXD);
 	pio_disable_pio(PIOA, URXD | URXD);
-	pio_disable_pullup(PIOB, PWML0);
-	pio_enable_output(PIOB, PWML0);
-	pio_disable_pio(PIOB, PWML0);
-	pio_set_periph_mode_B(PIOB, PWML0);
+	pio_disable_pullup(PIOB, PWML0 | PIN_20B);
+	pio_enable_output(PIOB, PWML0 | PIN_20B);
+	pio_disable_pio(PIOB, PWML0 | PIN_20B);
+	pio_set_periph_mode_B(PIOB, PWML0 | PIN_20B);
 	pmc_enable_periph_clk(ID_PWM);
 	pmc_enable_periph_clk(ID_UART);
 
@@ -104,6 +104,8 @@ void UART_Handler() {
 	case 0xFF:	//reset - controller responds identically to command 0x00
 		break;
 	}
+	REG_PWM_TPR = (uint32_t)status_response;
+	REG_PWM_TCR = 25;
 }
 
 void loop() {
