@@ -101,6 +101,7 @@ void PWM_Handler() {
 	//read controller data for next frame
 }
 
+//Set the baud rate really high and use a byte or two for each bit??
 void UART_Handler() {
 	diasble_uart_interrupt();
 	volatile uint32_t uart_read = REG_UART_RHR;
