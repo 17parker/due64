@@ -25,6 +25,9 @@ uint16_t rx_fail[10] = { stop, stop, stop, stop, stop, stop, stop, stop,
 						 stop, off };
 uint16_t rx_fail_count = 10;
 
+uint16_t dummy_stop[50] = { 0 };
+uint16_t dummy_count = 50;
+
 /*
 controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
 In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
@@ -40,7 +43,12 @@ void setup() {
 	controller_data[0] = one;
 	controller_data[32] = stop;
 	controller_data[33] = off;
-	//Pin setup
+
+	pio_disable_pullup(PIOA, PIN_17A);
+	pio_enable_output(PIOA, PIN_17A);
+	pio_enable_pio(PIOA, PIN_17A);
+	pio_output_write_HIGH(PIOA, PIN_17A);
+
 	pio_disable_pullup(PIOA, UTXD | URXD);
 	pio_enable_output(PIOA, UTXD);
 	pio_disable_output(PIOA, URXD);
@@ -58,12 +66,12 @@ void setup() {
 	REG_PWM_SCM |= 1 | (1 << 17);
 	REG_PWM_CPRD0 = 28;
 	REG_PWM_CDTY0 = off;
-	REG_PWM_TPR = (uint32_t)status_response;
-	REG_PWM_TCR = status_count;
+	//REG_PWM_TPR = (uint32_t)status_response;
+	//REG_PWM_TCR = status_count;
 	REG_PWM_PTCR = (1 << 8);
-	REG_PWM_IER2 |= (1 << 2);
-	NVIC_ClearPendingIRQ(PWM_IRQn);
-	NVIC_SetPriority(PWM_IRQn, 1);
+	//REG_PWM_IER2 |= (1 << 2);
+	//NVIC_ClearPendingIRQ(PWM_IRQn);
+	//NVIC_SetPriority(PWM_IRQn, 1);
 
 	/*
 	Baud rate = MCK / (16 * CD)
@@ -79,21 +87,31 @@ void setup() {
 	NVIC_SetPriority(UART_IRQn, 0);
 	NVIC_EnableIRQ(UART_IRQn);
 	uart_enable_rx();
-	NVIC_EnableIRQ(PWM_IRQn);
+	//NVIC_EnableIRQ(PWM_IRQn);
 	REG_PWM_ENA |= 1;
 }
 
+void diasble_uart_interrupt(){ REG_UART_IDR = ~0; }
+void enable_uart_interrupt(){ REG_UART_IER = 1; }
 
 void PWM_Handler() {
 	volatile uint32_t dummy = REG_PWM_ISR2;
-	uart_enable_rx();
+	enable_uart_interrupt();
+	pio_output_write_HIGH(PIOA, PIN_17A);
 	//read controller data for next frame
 }
 
 void UART_Handler() {
-	uart_disable_rx();
+	diasble_uart_interrupt();
 	volatile uint32_t uart_read = REG_UART_RHR;
 	uart_read = (uart_read << 1) & 0b11111111;
+	REG_PWM_TPR = (uint32_t)controller_data;
+	REG_PWM_TCR = controller_count;
+	for (volatile uint32_t dummy = 0; dummy < 4000; dummy++) {}
+	uart_read = REG_UART_RHR;
+	enable_uart_interrupt();
+	return;
+
 	switch (uart_read) {
 	case 0x00:	//status - controller sends 3 bytes: 0x05, 0x00, 0x00 (bitflags)
 		REG_PWM_TPR = (uint32_t)status_response;
@@ -136,6 +154,9 @@ void UART_Handler() {
 		REG_PWM_TCR = rx_fail_count;
 		*/
 	}
+	for (volatile uint32_t dummy = 0; dummy < 4000; dummy++){}
+	uart_read = REG_UART_RHR;
+	enable_uart_interrupt();
 }
 
 void loop() {
