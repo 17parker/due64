@@ -7,6 +7,11 @@
 
 //Use UART to receive N64 command, then use PWM with variable duty cycle to transmit data
 
+/*
+controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
+In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
+*/
+
 #include "SAM3XDUE.h"
 
 const uint16_t one = 7;
@@ -28,13 +33,21 @@ uint16_t rx_fail_count = 10;
 uint16_t dummy_stop[50] = { 0 };
 uint16_t dummy_count = 50;
 
-/*
-controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
-In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
-*/
+
+volatile uint8_t rx_read[8];
+volatile uint16_t rx_count = 8;
+volatile uint16_t test[10];
+volatile uint16_t test_count = 10;
 
 volatile uint16_t controller_data[34];
 volatile uint16_t controller_count = 34;
+
+void diasble_uart_interrupt() { REG_UART_IDR = ~0; }
+void enable_uart_interrupt() { REG_UART_IER = (1 << 3); }
+void set_uart_dma() {
+	REG_UART_RPR = (uint32_t)rx_read;
+	REG_UART_RCR = rx_count;
+}
 
 void setup() {
 	for (uint8_t i = 0; i < 32; i++) {
@@ -79,20 +92,19 @@ void setup() {
 	250,000 = 84,000,000/(16 * CD) --> CD = 21
 	21 + 1 = 22 because the n64 is closer to 240kHz
 	*/
-	uart_set_clk_div(22);
+	uart_set_clk_div(2);
 	uart_set_parity_ch_mode();
 	REG_UART_IDR = ~0;
-	REG_UART_IER = 1;
+	REG_UART_IER = (1 << 3);
+	REG_UART_PTCR = 1;
 	NVIC_ClearPendingIRQ(UART_IRQn);
 	NVIC_SetPriority(UART_IRQn, 0);
 	NVIC_EnableIRQ(UART_IRQn);
 	uart_enable_rx();
 	//NVIC_EnableIRQ(PWM_IRQn);
 	REG_PWM_ENA |= 1;
+	set_uart_dma();
 }
-
-void diasble_uart_interrupt(){ REG_UART_IDR = ~0; }
-void enable_uart_interrupt(){ REG_UART_IER = 1; }
 
 void PWM_Handler() {
 	volatile uint32_t dummy = REG_PWM_ISR2;
@@ -104,15 +116,31 @@ void PWM_Handler() {
 //Set the baud rate really high and use a byte or two for each bit??
 void UART_Handler() {
 	diasble_uart_interrupt();
-	volatile uint32_t uart_read = REG_UART_RHR;
-	uart_read = (uart_read << 1) & 0b11111111;
-	REG_PWM_TPR = (uint32_t)controller_data;
-	REG_PWM_TCR = controller_count;
-	for (volatile uint32_t dummy = 0; dummy < 4000; dummy++) {}
-	uart_read = REG_UART_RHR;
-	enable_uart_interrupt();
-	return;
 
+	*(uint32_t*)(rx_read) = ((*(uint32_t*)(rx_read)) >> 6) & 1;
+	*(uint32_t*)(rx_read + 4) = ((*(uint32_t*)(rx_read + 4)) >> 6) & 1;
+	test[0] = b[rx_read[0]];
+	test[1] = b[rx_read[1]];
+	test[2] = b[rx_read[2]];
+	test[3] = b[rx_read[3]];
+	test[4] = b[rx_read[4]];
+	test[5] = b[rx_read[5]];
+	test[6] = b[rx_read[6]];
+	test[7] = b[rx_read[7]];
+	test[8] = stop;
+	test[9] = off;
+
+
+	REG_PWM_TPR = (uint32_t)test;
+	REG_PWM_TCR = test_count;
+
+	//Sometimes the pwm dma would send an extra bit if this for loop was disabled
+	//check to see if it does that when the loop is enabled
+	for (volatile uint32_t dummy = 0; dummy < 4000; dummy++) {}
+	enable_uart_interrupt();
+	set_uart_dma();
+	return;
+	volatile uint32_t uart_read = REG_UART_RHR;
 	switch (uart_read) {
 	case 0x00:	//status - controller sends 3 bytes: 0x05, 0x00, 0x00 (bitflags)
 		REG_PWM_TPR = (uint32_t)status_response;
@@ -135,27 +163,27 @@ void UART_Handler() {
 	default:
 		REG_PWM_TPR = (uint32_t)controller_data;
 		REG_PWM_TCR = controller_count;
-	/*default:
-		rx_fail[0] = b[uart_read & 1];
-		uart_read = uart_read >> 1;
-		rx_fail[1] = b[uart_read & 1];
-		uart_read = uart_read >> 1;
-		rx_fail[2] = b[uart_read & 1];
-		uart_read = uart_read >> 1;
-		rx_fail[3] = b[uart_read & 1];
-		uart_read = uart_read >> 1;
-		rx_fail[4] = b[uart_read & 1];
-		uart_read = uart_read >> 1;
-		rx_fail[5] = b[uart_read & 1];
-		uart_read = uart_read >> 1;
-		rx_fail[6] = b[uart_read & 1];
-		uart_read = uart_read >> 1;
-		rx_fail[7] = b[uart_read & 1];
-		REG_PWM_TPR = (uint32_t)rx_fail;
-		REG_PWM_TCR = rx_fail_count;
-		*/
+		/*default:
+			rx_fail[0] = b[uart_read & 1];
+			uart_read = uart_read >> 1;
+			rx_fail[1] = b[uart_read & 1];
+			uart_read = uart_read >> 1;
+			rx_fail[2] = b[uart_read & 1];
+			uart_read = uart_read >> 1;
+			rx_fail[3] = b[uart_read & 1];
+			uart_read = uart_read >> 1;
+			rx_fail[4] = b[uart_read & 1];
+			uart_read = uart_read >> 1;
+			rx_fail[5] = b[uart_read & 1];
+			uart_read = uart_read >> 1;
+			rx_fail[6] = b[uart_read & 1];
+			uart_read = uart_read >> 1;
+			rx_fail[7] = b[uart_read & 1];
+			REG_PWM_TPR = (uint32_t)rx_fail;
+			REG_PWM_TCR = rx_fail_count;
+			*/
 	}
-	for (volatile uint32_t dummy = 0; dummy < 4000; dummy++){}
+	for (volatile uint32_t dummy = 0; dummy < 4000; dummy++) {}
 	uart_read = REG_UART_RHR;
 	enable_uart_interrupt();
 }
