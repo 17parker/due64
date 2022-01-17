@@ -38,6 +38,7 @@ const uint16_t test_count = 12;
 const uint32_t test_delay = 500;
 
 volatile uint32_t frame_count = 0;
+volatile uint8_t a_press = 0;
 
 void setup() {
 	for (uint8_t i = 0; i < 34; i++)
