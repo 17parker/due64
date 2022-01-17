@@ -5,12 +5,7 @@ In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 */
 
 #include "SAM3XDUE.h"
-
-const uint16_t one = 7;
-const uint16_t zro = 21;
-const uint16_t stop = 14;
-const uint16_t off = 0;
-const uint16_t b[2] = { zro, one };
+#include "tas_data.h"
 
 const uint16_t status_response[28] = { off, off, b[0], b[0], b[0], b[0], b[0], b[1], b[0], b[1],	//0x05
 								 b[0], b[0], b[0], b[0], b[0], b[0], b[0], b[0],	//0x00
@@ -27,27 +22,13 @@ Each packet of transmitted data is formatted like this:
 So (2 off bits) + (32 bits when controller responds) + (stop and off) = 36
 The delay timings are mostly arbitrary, but ~45*(n bits)
 */
-volatile uint16_t controller_data[36];
-const uint16_t controller_count = 36;
-const uint32_t controller_delay = 1520;
-volatile uint16_t complete_rx[68] = {off, off};	//all 8 bytes of rx data
-const uint16_t complete_count = 68;
-const uint32_t complete_delay = 3400;
 volatile uint16_t test[12] = {off, off};			//one bit from each byte of rx data
 const uint16_t test_count = 12;
 const uint32_t test_delay = 500;
 
-volatile uint32_t frame_count = 0;
-volatile uint8_t a_press = 0;
 
 void setup() {
-	for (uint8_t i = 0; i < 34; i++)
-		controller_data[i] = zro;
-	controller_data[0] = off;
-	controller_data[1] = off;
-	controller_data[34] = stop;
-	controller_data[35] = off;
-
+	init_buffers();
 	/*
 	Pin 0 - UART RX
 	Pin 1 - UART TX
@@ -95,65 +76,34 @@ void setup() {
 	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
+
+	load_buffer(instructions[0]);
+	set_buffer_count(cycles[0]);
 }
 
 void TC0_Handler() {
 	volatile uint32_t dummy = REG_TC0_SR0;
 	REG_UART_RPR = (uint32_t)rx_read;	//set UART DMA
 	REG_UART_RCR = rx_count;
+	--buffer_count;
+	if (!buffer_count) {
+		++current_inst;
+		if (current_inst >= inst_size)
+			return;
+		load_buffer(instructions[current_inst]);
+		set_buffer_count(cycles[current_inst]);
+	}
 	REG_UART_IER = (1 << 3);
-	if (frame_count >= 7) {
-		controller_data[2] = b[0];
-		controller_data[3] = b[1];
-		frame_count = 0;
-	}
-	else if (frame_count <= 4) {
-		controller_data[2] = b[1];
-		controller_data[3] = b[0];
-		++frame_count;
-	}
-	else {
-		controller_data[2] = b[0];
-		controller_data[3] = b[1];
-		++frame_count;
-	}
 }
 
 void UART_Handler() {
 	REG_UART_IDR = ~0;
-	REG_PWM_TPR = (uint32_t)controller_data;
-	REG_PWM_TCR = controller_count;
-	REG_TC0_RC0 = controller_delay;
+	REG_PWM_TPR = (uint32_t)buffer;
+	REG_PWM_TCR = buffer_size;
+	REG_TC0_RC0 = buffer_delay;
 	REG_TC0_CCR0 = (1 << 2);
-	//run_test();
-	//run_controller();
-	return;
 }
 
 void loop() {
 	//Nothing here...
-}
-
-void run_controller() {
-	REG_PWM_TPR = (uint32_t)controller_data;
-	REG_PWM_TCR = controller_count;
-	REG_TC0_RC0 = controller_delay;
-	REG_TC0_CCR0 = (1 << 2);
-}
-
-void run_test() {
-	test[2] = b[(rx_read[0] >> 6) & 1];
-	test[3] = b[(rx_read[1] >> 6) & 1];
-	test[4] = b[(rx_read[2] >> 6) & 1];
-	test[5] = b[(rx_read[3] >> 6) & 1];
-	test[6] = b[(rx_read[4] >> 6) & 1];
-	test[7] = b[(rx_read[5] >> 6) & 1];
-	test[8] = b[(rx_read[6] >> 6) & 1];
-	test[9] = b[(rx_read[7] >> 6) & 1];
-	test[10] = stop;
-	test[11] = off;
-	REG_PWM_TPR = (uint32_t)test;
-	REG_PWM_TCR = test_count;
-	REG_TC0_RC0 = test_delay;
-	REG_TC0_CCR0 = (1 << 2);
 }
