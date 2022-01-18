@@ -39,7 +39,7 @@ enum button_offsets {
 	CD,
 	CL,
 	CR,
-	X,
+	X = 16,
 	Y = 24
 };
 
