@@ -22,16 +22,16 @@ Each packet of transmitted data is formatted like this:
 So (2 off bits) + (32 bits when controller responds) + (stop and off) = 36
 The delay timings are mostly arbitrary, but ~45*(n bits)
 */
-volatile uint16_t test[12] = {off, off};			//one bit from each byte of rx data
+volatile uint16_t test[12] = { off, off };			//one bit from each byte of rx data
 const uint16_t test_count = 12;
 const uint32_t test_delay = 500;
 
 
 void setup() {
-	init_buffers();
+	init_buffer();
 	/*
 	Pin 0 - UART RX
-	Pin 1 - UART TX
+	Pin 1 - UART TX (unused right now)
 	Pin 2 - TIOA output
 	Pin 20 - PWMH0 output
 	*/
@@ -77,24 +77,33 @@ void setup() {
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
 
-	load_buffer(instructions[0]);
-	set_buffer_count(cycles[0]);
+
+	load_area(current_area);
 }
 
 void TC0_Handler() {
 	volatile uint32_t dummy = REG_TC0_SR0;
 	REG_UART_RPR = (uint32_t)rx_read;	//set UART DMA
 	REG_UART_RCR = rx_count;
-	--buffer_count;
-	if (!buffer_count) {
-		++current_inst;
-		if (current_inst >= inst_size)
-			return;
-		load_buffer(instructions[current_inst]);
-		set_buffer_count(cycles[current_inst]);
+	--cycles_remaining;
+	if (!cycles_remaining) {
+		--inst_remaining;
+		if (!inst_remaining) {
+			--areas_remaining;
+			if (!areas_remaining) {
+				load_area(current_area);
+				areas_remaining = 1;
+			}
+			else
+				load_area(++current_area);
+		}
+		else
+			load_inst(++current_inst);
 	}
 	REG_UART_IER = (1 << 3);
+	return;
 }
+
 
 void UART_Handler() {
 	REG_UART_IDR = ~0;
