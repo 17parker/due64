@@ -10,36 +10,8 @@ volatile uint16_t buffer[36];
 const uint16_t buffer_size = 36;
 const uint32_t buffer_delay = 1520;
 volatile uint32_t frame_count = 0;
-enum button_offsets {
-	A,
-	B,
-	Z,
-	START,
-	DU,
-	DD,
-	DL,
-	DR,
-	RST,
-	UNUSED,
-	L,
-	R,
-	CU,
-	CD,
-	CL,
-	CR,
-	X = 16,
-	Y = 24
-};
 
 const uint32_t stand = 0;
-const uint32_t n = 0b10001010 << Y;
-const uint32_t ne = (0b10001010 << X) | (0b10001010 << Y);
-const uint32_t nw = (0b11110101 << X) | (0b10001010 << Y);
-const uint32_t e = 0b11110101 << X;
-const uint32_t s = 0b11110101 << Y;
-const uint32_t sw = (0b11110101 << X) | (0b11110101 << Y);
-const uint32_t se = (0b10001010 << X) | (0b11110101 << Y);
-const uint32_t w = (0b10001010 << X);
 
 struct instructions {
 	uint32_t data;
@@ -51,33 +23,34 @@ struct area {
 	const char* area_label;	//7 chars long (8 including '\n')
 };
 
-const uint32_t boot_count = 5;
-const instructions boot_area[boot_count] = { { stand,120}, { 1 << START, 5 }, { stand, 30}, {1 << A,5}, {stand,60} };
+const uint32_t boot_count = 11;
+const instructions boot_area[boot_count] = { { stand,120}, { 0x8, 5 }, { stand, 30},{ 0x45000000, 4 }, {0x1,5}, {stand,255}, {stand,255}, {stand,255}, {stand,255}, {stand,255},{stand,220} };
 const char* boot_label = "boot-up";
 const area bootup = { boot_count, boot_area, boot_label };
 
-const uint32_t outside_count = 9;
-const instructions outside_area[outside_count] = { {n, 90},{ne,20},{nw,15},{ne,20},{nw,14} ,{ne,15},{nw,27}, {n,100}, {stand, 100} };
+const uint32_t outside_count = 15;
+const instructions outside_area[outside_count] = { { 0x2, 2 },{stand,10},{ 0x2, 2 },{stand,20}, { 0xba080000, 30 },{ 0x7a100000, 40 },{ 0x7a000000, 79 }, { 0x7acf0000, 6 }, { 0x7a000004, 1 },{0x7a000005,1},{0x450004,6} ,{0x7a000004,19},{0x7a000005,3},{ 0x525c0000, 45 }, {stand, 100} };
 const char* outside_label = "outside";
 const area outside = { outside_count, outside_area, outside_label };
 
-const uint32_t inside_count = 12;
-const instructions inside_area[inside_count] = { {se,25},{ne,15},{n,60},{ne,30},{n,75},{(1 << A) | n,3},{nw, 10},{n,25},{(1 << A) | n,3}, {stand, 80}, {1 << A, 5},{stand,70} };
+const uint32_t inside_count = 1;
+const instructions inside_area[inside_count] = { {0,1} };
 const char* inside_label = " inside";
 const area inside = { inside_count, inside_area, inside_label };
 
-const uint32_t d_up_count = 2;
-const instructions d_up_area[d_up_count] = { {1 << DU,3},{stand,20} };
-const char* d_up_label = "   d_up";
-const area d_up = { d_up_count, d_up_area,d_up_label };
-
 const uint32_t jump_count = 3;
-const instructions jump_kick[jump_count] = { { 1 << A, 5}, {1 << Z, 45}, {stand, 45} };
+const instructions jump_kick[jump_count] = { { 0x1, 5}, {0x4, 45}, {stand, 45} };
 const char* jump_label = "jumping";
 const area jumps = { jump_count, jump_kick, jump_label };
 
-const uint32_t area_count = 4;
-const area areas[area_count] = { bootup,outside, inside, jumps };
+//This just loads the savestate
+const uint32_t d_up_count = 2;
+const instructions d_up_area[d_up_count] = { {0x10,3},{stand,20} };
+const char* d_up_label = "   d_up";
+const area d_up = { d_up_count, d_up_area,d_up_label };
+
+const uint32_t area_count = 3;
+const area areas[area_count] = { bootup, outside, jumps };
 
 const area* volatile current_area = areas;
 volatile uint32_t areas_remaining = area_count;
@@ -85,7 +58,6 @@ const instructions* volatile current_inst = nullptr;
 volatile uint32_t inst_remaining = 0;
 volatile uint8_t cycles_remaining = 0;
 const char* volatile current_label;
-
 
 inline void load_inst(const instructions* inst) {
 	cycles_remaining = inst->cycles;
@@ -129,6 +101,12 @@ inline void load_area(const area* area) {
 	current_label = area->area_label;
 }
 
+/*
+Each packet of transmitted data is formatted like this:
+[off, off, ...(n bits to send)..., stop bit, off) = (n bits) + 4
+So (2 off bits) + (32 bits when controller responds) + (stop and off) = 36
+The delay timings are mostly arbitrary, but ~45*(n bits)
+*/
 void init_buffer() {
 	buffer[0] = off;
 	buffer[1] = off;

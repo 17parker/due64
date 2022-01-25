@@ -16,16 +16,6 @@ const uint32_t status_delay = 1350;
 
 volatile uint8_t rx_read[8];
 const uint16_t rx_count = 8;
-/*
-Each packet of transmitted data is formatted like this:
-[off, off, ...(n bits to send)..., stop bit, off) = (n bits) + 4
-So (2 off bits) + (32 bits when controller responds) + (stop and off) = 36
-The delay timings are mostly arbitrary, but ~45*(n bits)
-*/
-volatile uint16_t test[12] = { off, off };			//one bit from each byte of rx data
-const uint16_t test_count = 12;
-const uint32_t test_delay = 500;
-
 
 void setup() {
 	init_buffer();
@@ -61,7 +51,7 @@ void setup() {
 	REG_PWM_SCM |= 1 | (1 << 17);
 	REG_PWM_CPRD0 = 28;
 	REG_PWM_CDTY0 = off;
-	REG_PWM_PTCR = (1 << 8); //DMA TXEN
+	REG_PWM_PTCR = (1 << 8); //PWM - DMA TXEN
 
 	uart_set_clk_div(2);
 	uart_set_parity_ch_mode();
@@ -77,7 +67,6 @@ void setup() {
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
 
-
 	load_area(current_area);
 }
 
@@ -85,12 +74,9 @@ void TC0_Handler() {
 	volatile uint32_t dummy = REG_TC0_SR0;
 	REG_UART_RPR = (uint32_t)rx_read;	//set UART DMA
 	REG_UART_RCR = rx_count;
-	--cycles_remaining;
-	if (!cycles_remaining) {
-		--inst_remaining;
-		if (!inst_remaining) {
-			--areas_remaining;
-			if (!areas_remaining) {
+	if (!--cycles_remaining) {
+		if (!--inst_remaining) {
+			if (!--areas_remaining) {
 				load_area(current_area);
 				areas_remaining = 1;
 			}
