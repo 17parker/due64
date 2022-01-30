@@ -7,6 +7,9 @@ In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 #include "SAM3XDUE.h"
 #include "tas_data.h"
 
+const uint8_t oled1_addr = 0b0111100;
+const uint8_t oled2_addr = 0b0111101;
+
 const uint16_t status_response[28] = { off, off, b[0], b[0], b[0], b[0], b[0], b[1], b[0], b[1],	//0x05
 								 b[0], b[0], b[0], b[0], b[0], b[0], b[0], b[0],	//0x00
 								 b[0], b[0], b[0], b[0], b[0], b[0], b[0], b[0],	//0x00
@@ -19,6 +22,18 @@ const uint16_t rx_count = 8;
 
 void setup() {
 	init_buffer();
+	pmc_enable_periph_clk(ID_TWI0);
+	twi0_setup();
+	twi0_set_device_addr(0b0111100);
+	REG_TWI0_THR = 0xAF;
+	delay(100);
+	REG_TWI0_THR = 0xA7;
+	while (1) {
+
+	}
+
+
+
 	/*
 	Pin 0 - UART RX
 	Pin 1 - UART TX (unused right now)
