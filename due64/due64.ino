@@ -20,14 +20,22 @@ const uint32_t status_delay = 1350;
 volatile uint8_t rx_read[8];
 const uint16_t rx_count = 8;
 
+const uint8_t command_byte = 0b10000000;
+
 void setup() {
 	init_buffer();
 	pmc_enable_periph_clk(ID_TWI0);
 	twi0_setup();
 	twi0_set_device_addr(0b0111100);
+	REG_TWI0_THR = command_byte;
+	while(!(REG_TWI0_SR & (1 << 2))){}
 	REG_TWI0_THR = 0xAF;
-	delay(100);
-	REG_TWI0_THR = 0xA7;
+	REG_TWI0_CR |= (1 << 1);
+	delay(150);
+	REG_TWI0_THR = command_byte;
+	while (!(REG_TWI0_SR & (1 << 2))) {}
+	REG_TWI0_THR = 0xA5;
+	REG_TWI0_CR |= (1 << 1);
 	while (1) {
 
 	}
