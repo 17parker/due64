@@ -28,20 +28,31 @@ const instructions boot_area[boot_count] = { { stand,120}, { 0x8, 5 }, { stand, 
 const char* boot_label = "boot-up";
 const area bootup = { boot_count, boot_area, boot_label };
 
-const uint32_t outside_count = 15;
-const instructions outside_area[outside_count] = { { 0x2, 2 },{stand,10},{ 0x2, 2 },{stand,20}, { 0xba080000, 30 },{ 0x7a100000, 40 },{ 0x7a000000, 79 }, { 0x7acf0000, 6 }, { 0x7a000004, 1 },{0x7a000005,1},{0x450004,6} ,{0x7a000004,19},{0x7a000005,3},{ 0x525c0000, 45 }, {stand, 100} };
+const uint32_t outside_count = 14;
+const instructions outside_area[outside_count] = { { 0x2, 2 },{stand,10},{ 0x2, 2 },{stand,20}, { 0xba080000, 30 },{ 0x7a100000, 40 },{ 0x7a000000, 79 }, { 0x7acf0000, 6 }, { 0x7a000004, 1 },{0x7a000005,1},{0x450004,6} ,{0x7a000004,19},{0x7a000005,3},{ 0x525c0000, 45 } };
 const char* outside_label = "outside";
 const area outside = { outside_count, outside_area, outside_label };
 
-const uint32_t inside_count = 1;
-const instructions inside_area[inside_count] = { {0,1} };
-const char* inside_label = " inside";
-const area inside = { inside_count, inside_area, inside_label };
+const uint32_t to_BoB1_count = 24;
+const instructions inside_area[to_BoB1_count] = { {stand, 100}, {0x02,1}, {stand, 45}, {0x8b4a0000, 28},{0x8a0c0000, 8},{0x8a0c0002, 1}, {0x8a0c0000,10}, {0x8a0c0001, 1},{0x1a440000, 26},{0x146a0002, 1},{0xd4280000, 10} ,{0x6a640001, 1}, {0xc2bd0000, 67},
+/******************************In the door*/      {0x7a000000,4}, {0x7a000004, 1},{0x7a000005, 1},{0x7aaf0000, 10}, {0x7aaf0000, 22}, { 0x7aaf0004,1},{0x7aaf0005,1}, {0x7aaf0001, 30}, {0x0,85}, {0x1,1}, {stand,100} };
+const char* inside_label = "To BoB1";
+const area to_BoB1 = { to_BoB1_count, inside_area, inside_label };
+
+const uint32_t BoB1_count = 1;
+const instructions BoB1_inst[BoB1_count] = { {0x0,1} };
+const char* BoB1_label = "  BoB 1";
+const area BoB1 = { BoB1_count, BoB1_inst, BoB1_label };
 
 const uint32_t jump_count = 3;
-const instructions jump_kick[jump_count] = { { 0x1, 5}, {0x4, 45}, {stand, 45} };
+const instructions jump_kick[jump_count] = { { 0x1, 2}, {0x4, 45}, {stand, 45} };
 const char* jump_label = "jumping";
 const area jumps = { jump_count, jump_kick, jump_label };
+
+const uint32_t end_count = 2;
+const instructions end_stand[end_count] = { {stand,255 },{stand,255 } };
+const char* end_label = "    fin";
+const area end = { end_count, end_stand,end_label };
 
 //This just loads the savestate
 const uint32_t d_up_count = 2;
@@ -49,8 +60,13 @@ const instructions d_up_area[d_up_count] = { {0x10,3},{stand,20} };
 const char* d_up_label = "   d_up";
 const area d_up = { d_up_count, d_up_area,d_up_label };
 
+const uint32_t L_R_count = 1;
+const instructions L_R_inst[L_R_count] = { {0xc00,4}};
+const char* L_R_label = "    L_R";
+const area L_R = { L_R_count, L_R_inst,L_R_label };
+
 const uint32_t area_count = 3;
-const area areas[area_count] = { bootup, outside, jumps };
+const area areas[area_count] = { L_R, BoB1, end };
 
 const area* volatile current_area = areas;
 volatile uint32_t areas_remaining = area_count;

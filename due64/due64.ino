@@ -23,31 +23,31 @@ const uint16_t rx_count = 8;
 const uint8_t command_byte = 0b10000000;
 
 void setup() {
-	init_buffer();
-	pmc_enable_periph_clk(ID_TWI0);
-	twi0_setup();
-	twi0_set_device_addr(0b0111100);
-	REG_TWI0_THR = command_byte;
-	while(!(REG_TWI0_SR & (1 << 2))){}
-	REG_TWI0_THR = 0xAF;
-	REG_TWI0_CR |= (1 << 1);
-	delay(150);
-	REG_TWI0_THR = command_byte;
-	while (!(REG_TWI0_SR & (1 << 2))) {}
-	REG_TWI0_THR = 0xA5;
-	REG_TWI0_CR |= (1 << 1);
+	/***For the 16x2 LCD
+	NCS0 will determine read or write (RS (register select) pin - HIGH = data, LOW = instruction)
+		--->Writing to 0x60... will send CS LOW, writing to 0x6n... where n!=0 will keep CS HIGH
+		--->Write to 0x60... to send instruciton, write to 0x61... to send data
+	NWE on the SMC will go to the Enable pin on the LCD
+		--->NOTE: Enable pin on the LCD is active HIGH, NWE in the SMC is active LOW (need an inverter)
+	The write operation will be controlled by NWE (NCS0 determines command/data before data is latched)
+	At the moment, I do not plan to read from the display, so R/W is tied LOW (LOW = write, HIGH = read)
+	*/
+	/*
+	pmc_enable_periph_clk(ID_SMC);
+	smc_setup_pins();
+	smc_16x2_lcd_setup();
 	while (1) {
+		*(volatile uint8_t*)(0x60000000) = 50;
 
 	}
-
-
-
-	/*
+	*/
+	/*Pins for interfacing with the N64
 	Pin 0 - UART RX
 	Pin 1 - UART TX (unused right now)
 	Pin 2 - TIOA output
 	Pin 20 - PWMH0 output
 	*/
+	init_buffer();
 	pio_disable_pullup(PIOA, UTXD | URXD);
 	pio_enable_output(PIOA, UTXD);
 	pio_disable_output(PIOA, URXD);
