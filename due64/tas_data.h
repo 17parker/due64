@@ -37,8 +37,8 @@ const instructions inside_area[to_BoB1_count] = { {0x0, 100}, {0x02,1}, {0x0, 45
 const char* inside_label = "To BoB1";
 const area to_BoB1 = { to_BoB1_count, inside_area, inside_label };
 
-const uint32_t BoB1_count = 56;	//****Starts at the A press to select the star					This pause is long because of a stupid fucking goomba ->{0x0,210}<- It can probably go down to like 190
-const instructions BoB1_inst[BoB1_count] = { {0x1,1}, {0x0,20}, {0x2000,1}, {0x0, 5}, {0x4000,1},  {0x0,60},{0x2,1},{0x0,15},{0x2,1},{0x0,15}, {0x2,1}, {0x0,210}, { 0x7a1f0000, 6 }, { 0x7a1f0004,1 }, { 0x7a1f0005,1 }, { 0x7a1f0000, 35 }, { 0x7a1f0001,1 }, { 0x7a1f0002,1 }, { 0x7a1f0000, 26 },
+const uint32_t BoB1_count = 56;	//****Starts at the A press to select the star					This pause is long because of a stupid fucking goomba ->{0x0,190}<-
+const instructions BoB1_inst[BoB1_count] = { {0x1,1}, {0x0,20}, {0x2000,1}, {0x0, 5}, {0x4000,1},  {0x0,60},{0x2,1},{0x0,15},{0x2,1},{0x0,15}, {0x2,1}, {0x0,190}, { 0x7a1f0000, 6 }, { 0x7a1f0004,1 }, { 0x7a1f0005,1 }, { 0x7a1f0000, 35 }, { 0x7a1f0001,1 }, { 0x7a1f0002,1 }, { 0x7a1f0000, 26 },
 /************************jump dive rollout*/ {0x7a1f0001,1}, {0x7a000000,16}, {0x7a000001,1},{0x7a000002,1},{0x7a000000,25}, {0x7a000001,1}, {0x7a000000,15},{0x7a000001,1},{0x7a000002,1},{0x7a000000,21},{0x7a000001,1},
 /**************************top of the ramp*/ {0x7a000000,15}, {0xf2b30000,3},{0xf2b30004,3},{0xf2b30001,3},{0xf2b30000,34},{0x2,1},{0x0,16}, {0x450000,4},{0x450001,5},{0x450000,14},{0x18a50001,1},{0x18a50003,1},{0x18a50001,6},
 /*******************turn to catch the bomb*/ {0x18a50000,11}, {0x0,5}, { 0xab240000, 4},{0x2,1},{0x0,25},{0x8000,1},{0x0,3}, {0x8b000000,4},{0x0,41},{0x2,1},{0x0,25},{0x4,4}, {0x1,20} };
