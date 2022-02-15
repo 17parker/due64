@@ -195,6 +195,9 @@
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\system_sam3xa.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
+    <ClInclude Include="tftas.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\abi.cpp">

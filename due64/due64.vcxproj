@@ -165,6 +165,7 @@
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE.H" />
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE_timers.h" />
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\system_sam3xa.h" />
+    <ClInclude Include="tftas.h" />
     <ClInclude Include="__vm\.due64.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>

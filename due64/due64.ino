@@ -6,9 +6,8 @@ In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 
 #include "SAM3XDUE.h"
 #include "tas_data.h"
+#include "tftas.h"
 
-const uint8_t oled1_addr = 0b0111100;
-const uint8_t oled2_addr = 0b0111101;
 
 const uint16_t status_response[28] = { off, off, b[0], b[0], b[0], b[0], b[0], b[1], b[0], b[1],	//0x05
 								 b[0], b[0], b[0], b[0], b[0], b[0], b[0], b[0],	//0x00
@@ -20,32 +19,27 @@ const uint32_t status_delay = 1350;
 volatile uint8_t rx_read[8];
 const uint16_t rx_count = 8;
 
-const uint8_t command_byte = 0b10000000;
+//When the due sends data I want it to update the display, but not during an interrupt
+volatile uint8_t tft_update = 0;
+//Powers of 10, E-notation (ex: tene0 = 10^0), stores the digits
+volatile uint8_t tene0 = 0;
+volatile uint8_t tene1 = 0;
+volatile uint8_t tene2 = 0;
+volatile uint8_t tene3 = 0;
+volatile uint8_t tene4 = 0;
+volatile uint8_t tene5 = 0;
+volatile uint8_t tene6 = 0;
+
 
 void setup() {
-	/***For the 16x2 LCD
-	NCS0 will determine read or write (RS (register select) pin - HIGH = data, LOW = instruction)
-		--->Writing to 0x60... will send CS LOW, writing to 0x6n... where n!=0 will keep CS HIGH
-		--->Write to 0x60... to send instruciton, write to 0x61... to send data
-	NWE on the SMC will go to the Enable pin on the LCD
-		--->NOTE: Enable pin on the LCD is active HIGH, NWE in the SMC is active LOW (need an inverter)
-	The write operation will be controlled by NWE (NCS0 determines command/data before data is latched)
-	At the moment, I do not plan to read from the display, so R/W is tied LOW (LOW = write, HIGH = read)
-	*/
-	/*
-	pmc_enable_periph_clk(ID_SMC);
-	smc_setup_pins();
-	smc_16x2_lcd_setup();
-	while (1) {
-		*(volatile uint8_t*)(0x60000000) = 50;
-
-	}
-	*/
+	/***For the TFT display	*/
+	init_tft();
+	print_frame();
 	/*Pins for interfacing with the N64
-	Pin 0 - UART RX
+	Pin 0 - UART RX - BROWN WIRE
 	Pin 1 - UART TX (unused right now)
 	Pin 2 - TIOA output
-	Pin 20 - PWMH0 output
+	Pin 20 - PWMH0 output - PURPLE WIRE
 	*/
 	init_buffer();
 	pio_disable_pullup(PIOA, UTXD | URXD);
@@ -91,6 +85,7 @@ void setup() {
 	REG_UART_RCR = rx_count;
 
 	load_area(current_area);
+	display_nums();
 }
 
 void TC0_Handler() {
@@ -120,8 +115,32 @@ void UART_Handler() {
 	REG_PWM_TCR = buffer_size;
 	REG_TC0_RC0 = buffer_delay;
 	REG_TC0_CCR0 = (1 << 2);
+	if (++tene0 == 10) {
+		tene0 = 0;
+		if (++tene1 == 10) {
+			tene1 = 0;
+			if (++tene2 == 10) {
+				tene2 = 0;
+				if (++tene3 == 10) {
+					tene3 = 0;
+					if (++tene4 == 10) {
+						tene4 = 0;
+						if (++tene5 == 10) {
+							tene5 = 0;
+							++tene6;
+						}
+					}
+				}
+			}
+		}
+	}
+	update_num_buffer();
+	tft_update = 1;
 }
 
 void loop() {
-	//Nothing here...
+	if (tft_update) {
+		display_nums();
+		tft_update = 0;
+	}
 }
