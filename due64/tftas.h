@@ -1,10 +1,8 @@
 #pragma once
 
-//The pins are ACTIVE LOW
-//LCD_RS is the same as C/D or D/CX
+//LCD_RS - REGISTER SELECT -AKA C/D or D/CX
 //LCD_RS - LOW = command, HIGH = data
-//The special pins are going to be PC1 to PC5
-//In order these are pins:
+//The special pins (from PC1 to PC5):
 //33, 34, 35, 36, 37
 #define LCD_RD PIN_33C	//PC1, send from LOW to HIGH to get data to read on the bus
 #define LCD_WR PIN_34C	//PC2, send from LOW to HIGH to send command through bus 
@@ -12,16 +10,14 @@
 #define LCD_CS PIN_36C	//PC4, set LOW to start comms, set HIGH to end comms - CAN BE GROUNDED (UNNECESSARY)
 #define LCD_RST PIN_37C	//PC5, Reset pin (active LOW) - UNUSED
 
-//The pins I am using for data are PD0 to PD7
-//Pins (from PD0 to PD7):
+//Data pins (from PD0 to PD7):
 //25, 26, 27, 28, 14, 15, 29, 11
 #define PORTD_DATA 0b11111111	//using PD0 to PD7
 #define PORTC_PINS 0b111110		//using PC1 to PC5
 
-//These set the active column and page (row)
+//Commands for the TFT
 #define COL_ADDR_SET 0x2A
 #define PAGE_ADDR_SET 0x2B
-//Write to memory of ILI9341
 #define MEM_WRITE 0x2C
 
 inline void lcd_strobe_write();
