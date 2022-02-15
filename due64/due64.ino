@@ -96,6 +96,7 @@ void TC0_Handler() {
 		if (!--inst_remaining) {
 			if (!--areas_remaining) {
 				load_area(current_area);
+				out_of_inst = 1;
 				areas_remaining = 1;
 			}
 			else
@@ -142,5 +143,8 @@ void loop() {
 	if (tft_update) {
 		display_nums();
 		tft_update = 0;
+	}
+	if (out_of_inst) {
+		while(1){}
 	}
 }

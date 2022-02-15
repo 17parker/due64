@@ -9,8 +9,8 @@
 #define LCD_RD PIN_33C	//PC1, send from LOW to HIGH to get data to read on the bus
 #define LCD_WR PIN_34C	//PC2, send from LOW to HIGH to send command through bus 
 #define LCD_RS PIN_35C	//PC3, set LOW to send command, set HIGH to send data
-#define LCD_CS PIN_36C	//PC4, set LOW to start comms, set HIGH to end comms
-#define LCD_RST PIN_37C	//PC5, Reset pin (active LOW)
+#define LCD_CS PIN_36C	//PC4, set LOW to start comms, set HIGH to end comms - CAN BE GROUNDED (UNNECESSARY)
+#define LCD_RST PIN_37C	//PC5, Reset pin (active LOW) - UNUSED
 
 //The pins I am using for data are PD0 to PD7
 //Pins (from PD0 to PD7):
@@ -26,8 +26,6 @@
 
 inline void lcd_strobe_write();
 inline void lcd_strobe_read();
-inline void lcd_start_comms();
-inline void lcd_end_comms();
 inline void lcd_set_command();
 inline void lcd_set_data();
 inline void lcd_send_0_byte_command(uint8_t comm);
@@ -44,6 +42,7 @@ inline void init_tft();
 inline void print_frame();
 inline void update_num_buffer();
 inline void display_nums();
+inline void ogre(const uint8_t* ogre);
 
 const uint32_t num_blank = 0;
 const uint32_t num_0 = 0b00000110100110011001100110010110;
@@ -56,7 +55,7 @@ const uint32_t num_6 = 0b00000110100110011111100010000111;
 const uint32_t num_7 = 0b00001000010000100010000100011111;
 const uint32_t num_8 = 0b00000110100110010110100110010110;
 const uint32_t num_9 = 0b00000001000100010111100110010111;
-const uint32_t num[10] = {num_0, num_1,num_2,num_3,num_4,num_5,num_6,num_7,num_8,num_9 };
+const uint32_t num[10] = { num_0, num_1,num_2,num_3,num_4,num_5,num_6,num_7,num_8,num_9 };
 extern volatile uint8_t tene0;
 extern volatile uint8_t tene1;
 extern volatile uint8_t tene2;
@@ -82,7 +81,7 @@ inline void print_frame() {
 	const uint32_t* line_ptr = f;
 	lcd_set_pages(310, 317);
 	lcd_set_columns(206, 237);
-	lcd_start_comms();
+
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -108,7 +107,7 @@ inline void print_frame() {
 		}
 		++line_ptr;
 	}
-	lcd_end_comms();
+
 }
 
 inline void update_num_buffer() {
@@ -124,7 +123,7 @@ inline void update_num_buffer() {
 inline void display_nums() {
 	lcd_set_pages(310, 317);
 	lcd_set_columns(168, 171);
-	lcd_start_comms();
+
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -155,9 +154,9 @@ inline void display_nums() {
 			lcd_strobe_write();
 		}
 	}
-	lcd_end_comms();
+
 	lcd_set_columns(173, 176);
-	lcd_start_comms();
+
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -188,9 +187,9 @@ inline void display_nums() {
 			lcd_strobe_write();
 		}
 	}
-	lcd_end_comms();
+
 	lcd_set_columns(178, 181);
-	lcd_start_comms();
+
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -221,9 +220,9 @@ inline void display_nums() {
 			lcd_strobe_write();
 		}
 	}
-	lcd_end_comms();
+
 	lcd_set_columns(183, 186);
-	lcd_start_comms();
+
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -254,9 +253,9 @@ inline void display_nums() {
 			lcd_strobe_write();
 		}
 	}
-	lcd_end_comms();
+
 	lcd_set_columns(188, 191);
-	lcd_start_comms();
+
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -287,9 +286,9 @@ inline void display_nums() {
 			lcd_strobe_write();
 		}
 	}
-	lcd_end_comms();
+
 	lcd_set_columns(193, 196);
-	lcd_start_comms();
+
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -320,9 +319,9 @@ inline void display_nums() {
 			lcd_strobe_write();
 		}
 	}
-	lcd_end_comms();
+
 	lcd_set_columns(198, 201);
-	lcd_start_comms();
+
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -353,11 +352,9 @@ inline void display_nums() {
 			lcd_strobe_write();
 		}
 	}
-	lcd_end_comms();
+
 }
 
-inline void lcd_start_comms() { pio_output_write_LOW(PIOC, LCD_CS); }
-inline void lcd_end_comms() { pio_output_write_LOW(PIOC, LCD_CS); }
 //Set the RS (D/CX) pin LOW to send command
 inline void lcd_set_command() { pio_output_write_LOW(PIOC, LCD_RS); }
 //Set the RS (D/CX) pin HIGH to send data
@@ -373,27 +370,23 @@ inline void lcd_strobe_read() {
 
 
 inline void lcd_send_0_byte_command(uint8_t comm) {
-	lcd_start_comms();
 	pio_output_write(PIOD, comm);
 	lcd_set_command();
 	lcd_strobe_write();
 	lcd_set_data();
-	lcd_end_comms();
+
 }
 
 inline void lcd_send_1_byte_command(uint8_t comm, uint8_t data) {
-	lcd_start_comms();
 	pio_output_write(PIOD, comm);
 	lcd_set_command();
 	lcd_strobe_write();
 	lcd_set_data();
 	pio_output_write(PIOD, data);
 	lcd_strobe_write();
-	lcd_end_comms();
 }
 
 inline void lcd_send_2_byte_command(uint8_t comm, uint8_t upper_byte, uint8_t lower_byte) {
-	lcd_start_comms();
 	lcd_set_command();
 	pio_output_write(PIOD, comm);
 	lcd_strobe_write();
@@ -402,11 +395,9 @@ inline void lcd_send_2_byte_command(uint8_t comm, uint8_t upper_byte, uint8_t lo
 	lcd_strobe_write();
 	pio_output_write(PIOD, lower_byte);
 	lcd_strobe_write();
-	lcd_end_comms();
 }
 
 inline void lcd_send_3_byte_command(uint8_t comm, uint8_t upper_byte, uint8_t middle_byte, uint8_t lower_byte) {
-	lcd_start_comms();
 	lcd_set_command();
 	pio_output_write(PIOD, comm);
 	lcd_strobe_write();
@@ -417,12 +408,10 @@ inline void lcd_send_3_byte_command(uint8_t comm, uint8_t upper_byte, uint8_t mi
 	lcd_strobe_write();
 	pio_output_write(PIOD, lower_byte);
 	lcd_strobe_write();
-	lcd_end_comms();
 }
 
 inline void lcd_set_columns(uint8_t start, uint8_t end) {
 	//This sends 1 byte to specify command and 4 bytes of data (2 for start, 2 for end)
-	lcd_start_comms();
 	pio_output_write(PIOD, COL_ADDR_SET);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -435,12 +424,11 @@ inline void lcd_set_columns(uint8_t start, uint8_t end) {
 	lcd_strobe_write();
 	pio_output_write(PIOD, end);
 	lcd_strobe_write();
-	lcd_end_comms();
 }
 
 //The values for pages goes from 0-319, and anything over 255 is over 1 byte, so this needs 2 bytes
 inline void lcd_set_pages(uint16_t start, uint16_t end) {
-	lcd_start_comms();
+
 	lcd_set_command();
 	pio_output_write(PIOD, PAGE_ADDR_SET);
 	lcd_strobe_write();
@@ -453,11 +441,9 @@ inline void lcd_set_pages(uint16_t start, uint16_t end) {
 	lcd_strobe_write();
 	pio_output_write(PIOD, end);
 	lcd_strobe_write();
-	lcd_end_comms();
 }
 
 inline void lcd_clear() {
-	lcd_start_comms();
 	pio_output_write(PIOD, MEM_WRITE);
 	lcd_set_command();
 	lcd_strobe_write();
@@ -473,36 +459,30 @@ inline void lcd_clear() {
 		pio_output_write(PIOD, 0x00);
 		lcd_strobe_write();
 	}
-	lcd_end_comms();
 }
 
 inline void lcd_display_on() {
-	lcd_start_comms();
 	pio_output_write(PIOD, 0x29);
 	lcd_set_command();
 	lcd_strobe_write();
 	lcd_set_data();
-	lcd_end_comms();
 	delayMicroseconds(5000);
 }
 
 inline void lcd_sleep_out() {
-	lcd_start_comms();
 	lcd_set_command();
 	pio_output_write(PIOD, 0x11);
 	lcd_strobe_write();
 	lcd_set_data();
-	lcd_end_comms();
 	delayMicroseconds(5000);		//There needs to be a short delay to allow voltages to stabilize
 }
 
 inline void lcd_software_reset() {
-	lcd_start_comms();
 	lcd_set_command();
 	pio_output_write(PIOD, 0x01);
 	lcd_strobe_write();
 	lcd_set_data();
-	lcd_end_comms();
+
 	delayMicroseconds(5000);
 }
 

@@ -51,7 +51,7 @@ const char* jump_label = "jumping";
 const area jumps = { jump_count, jump_kick, jump_label };
 
 const uint32_t end_count = 2;
-const instructions end_stand[end_count] = { {0x0,255 },{0x0,255 } };
+const instructions end_stand[end_count] = { {0x0,15 },{0x0,15 } };
 const char* end_label = "    fin";
 const area end = { end_count, end_stand,end_label };
 
@@ -75,6 +75,7 @@ const instructions* volatile current_inst = nullptr;
 volatile uint32_t inst_remaining = 0;
 volatile uint8_t cycles_remaining = 0;
 const char* volatile current_label;
+volatile uint8_t out_of_inst = 0;
 
 inline void load_inst(const instructions* inst) {
 	cycles_remaining = inst->cycles;
