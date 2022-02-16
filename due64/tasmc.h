@@ -3,9 +3,9 @@
 #define LCD_WR PIN_45C	//active HIGH
 #define LCD_RS PIN_47C	//active HIGH
 //Commands for the TFT
-#define COL_ADDR_SET 0x2A
-#define PAGE_ADDR_SET 0x2B
-#define MEM_WRITE 0x2C
+const uint32_t col_addr_set = 0x2A << 1;
+const uint32_t page_addr_set = 0x2B << 1;
+const uint32_t mem_write = 0x2C << 1;
 
 //Each byte in the frame buffer selects one color from 256 possible colors
 //The 256 possible colors will be a hard-coded const array
@@ -25,7 +25,6 @@ inline void lcd_display_on();
 inline void lcd_sleep_out();
 inline void lcd_software_reset();
 inline void init_tft();
-inline void print_frame();
 inline void lcd_write(uint8_t data);
 inline void lcd_test();
 
@@ -66,37 +65,6 @@ inline void lcd_write(uint8_t data) {
 	*((uint32_t*)0x60000000) = data;
 }
 
-inline void print_frame() {
-	const uint32_t* line_ptr = f;
-	lcd_set_pages(310, 317);
-	lcd_set_columns(206, 237);
-	pio_output_write(PIOC, (MEM_WRITE) << 1);
-	lcd_set_command();
-	lcd_strobe_write();
-	lcd_set_data();
-	for (uint8_t i = 0; i < 8; ++i) {
-		for (uint8_t j = 0; j < 32; ++j) {
-			if (((*line_ptr) >> j) & 1) {
-				pio_output_write(PIOD, 0xFF);
-				lcd_strobe_write();
-				pio_output_write(PIOD, 0xFF);
-				lcd_strobe_write();
-				pio_output_write(PIOD, 0xFF);
-				lcd_strobe_write();
-			}
-			else {
-				pio_output_write(PIOD, 0x00);
-				lcd_strobe_write();
-				pio_output_write(PIOD, 0x00);
-				lcd_strobe_write();
-				pio_output_write(PIOD, 0x00);
-				lcd_strobe_write();
-			}
-		}
-		++line_ptr;
-	}
-}
-
 //Set the RS (D/CX) pin LOW to send command
 inline void lcd_set_command() { pio_output_write_LOW(PIOC, LCD_RS); }
 //Set the RS (D/CX) pin HIGH to send data
@@ -108,7 +76,7 @@ inline void lcd_strobe_write() {
 
 inline void lcd_set_columns(uint8_t start, uint8_t end) {
 	//This sends 1 byte to specify command and 4 bytes of data (2 for start, 2 for end)
-	pio_output_write(PIOC, (COL_ADDR_SET) << 1);
+	pio_output_write(PIOC, col_addr_set);
 	lcd_set_command();
 	lcd_strobe_write();
 	lcd_set_data();
@@ -125,7 +93,7 @@ inline void lcd_set_columns(uint8_t start, uint8_t end) {
 //The values for pages goes from 0-319, and anything over 255 is over 1 byte, so this needs 2 bytes
 inline void lcd_set_pages(uint16_t start, uint16_t end) {
 	lcd_set_command();
-	pio_output_write(PIOC, (PAGE_ADDR_SET) << 1);
+	pio_output_write(PIOC, page_addr_set);
 	lcd_strobe_write();
 	lcd_set_data();
 	pio_output_write(PIOC, start >> 7);
@@ -140,7 +108,7 @@ inline void lcd_set_pages(uint16_t start, uint16_t end) {
 
 inline void lcd_clear() {
 	lcd_set_command();
-	pio_output_write(PIOC, (MEM_WRITE) << 1);
+	pio_output_write(PIOC, mem_write);
 	lcd_strobe_write();
 	lcd_set_data();
 	for (uint32_t pixels = 0; pixels <= 76800; ++pixels) {
@@ -200,7 +168,7 @@ inline void init_tft() {
 	lcd_set_pages(0, 319);
 	lcd_clear();
 	lcd_set_command();
-	pio_output_write(PIOC, MEM_WRITE << 1);
+	pio_output_write(PIOC, mem_write);
 	lcd_strobe_write();
 	lcd_set_data();
 }

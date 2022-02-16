@@ -76,6 +76,7 @@ void setup() {
 	NVIC_EnableIRQ(UART_IRQn);
 	uart_enable_rx();
 
+	//******TFT DISPLAY
 	init_tft();
 	smc_tft_lcd_setup();
 
