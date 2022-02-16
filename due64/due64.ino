@@ -19,8 +19,6 @@ const uint32_t status_delay = 1350;
 volatile uint8_t rx_read[8];
 const uint16_t rx_count = 8;
 
-//When the due sends data I want it to update the display, but not during an interrupt
-volatile uint8_t tft_update = 0;
 //Powers of 10, E-notation (ex: tene0 = 10^0), stores the digits
 volatile uint8_t tene0 = 0;
 volatile uint8_t tene1 = 0;
@@ -32,9 +30,6 @@ volatile uint8_t tene6 = 0;
 
 
 void setup() {
-	/***For the TFT display	*/
-	init_tft();
-	print_frame();
 	/*Pins for interfacing with the N64
 	Pin 0 - UART RX - BROWN WIRE
 	Pin 1 - UART TX (unused right now)
@@ -54,6 +49,7 @@ void setup() {
 	pmc_enable_periph_clk(ID_PWM);
 	pmc_enable_periph_clk(ID_UART);
 	pmc_enable_periph_clk(ID_TC0);
+	pmc_enable_periph_clk(ID_SMC);
 
 	REG_TC0_CMR0 = 1 | (1 << 6) | (1 << 14) | (1 << 15) | (1 << 16) | (0b11 << 18);	//Using TIOA on TC0
 	REG_TC0_RC0 = 21;
@@ -80,12 +76,14 @@ void setup() {
 	NVIC_EnableIRQ(UART_IRQn);
 	uart_enable_rx();
 
+	init_tft();
+	smc_tft_lcd_setup();
+
+
 	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
-
 	load_area(current_area);
-	display_nums();
 }
 
 void TC0_Handler() {
@@ -96,7 +94,6 @@ void TC0_Handler() {
 		if (!--inst_remaining) {
 			if (!--areas_remaining) {
 				load_area(current_area);
-				out_of_inst = 1;
 				areas_remaining = 1;
 			}
 			else
@@ -135,16 +132,8 @@ void UART_Handler() {
 			}
 		}
 	}
-	update_num_buffer();
-	tft_update = 1;
 }
 
 void loop() {
-	if (tft_update) {
-		display_nums();
-		tft_update = 0;
-	}
-	if (out_of_inst) {
-		while(1){}
-	}
+
 }

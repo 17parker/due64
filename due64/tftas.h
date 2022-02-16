@@ -5,7 +5,7 @@
 //The special pins (from PC1 to PC5):
 //33, 34, 35, 36, 37
 #define LCD_RD PIN_33C	//PC1, send from LOW to HIGH to get data to read on the bus
-#define LCD_WR PIN_34C	//PC2, send from LOW to HIGH to send command through bus 
+#define LCD_WR PIN_34C	//PC2, send from LOW to HIGH to write data/command
 #define LCD_RS PIN_35C	//PC3, set LOW to send command, set HIGH to send data
 #define LCD_CS PIN_36C	//PC4, set LOW to start comms, set HIGH to end comms - CAN BE GROUNDED (UNNECESSARY)
 #define LCD_RST PIN_37C	//PC5, Reset pin (active LOW) - UNUSED
