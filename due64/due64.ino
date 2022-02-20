@@ -74,14 +74,14 @@ void setup() {
 	NVIC_ClearPendingIRQ(UART_IRQn);
 	NVIC_SetPriority(UART_IRQn, 0);
 	NVIC_EnableIRQ(UART_IRQn);
-	uart_enable_rx();
+	//uart_enable_rx();
 
 	//******TFT DISPLAY
 	init_tft();
 	smc_tft_lcd_setup();
 
 
-	REG_PWM_ENA |= 1;
+	//	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
 	load_area(current_area);
@@ -136,5 +136,7 @@ void UART_Handler() {
 }
 
 void loop() {
+	
+
 
 }

@@ -19,6 +19,8 @@
 #define COL_ADDR_SET 0x2A
 #define PAGE_ADDR_SET 0x2B
 #define MEM_WRITE 0x2C
+volatile uint8_t* const bus = (uint8_t*)0x60000000;
+
 
 inline void lcd_strobe_write();
 inline void lcd_strobe_read();
@@ -480,4 +482,8 @@ inline void init_tft() {
 	lcd_set_columns(0, 239);
 	lcd_set_pages(0, 319);
 	lcd_clear();
+	pio_output_write(PIOD, MEM_WRITE);
+	lcd_set_command();
+	lcd_strobe_write();
+	lcd_set_data();
 }
