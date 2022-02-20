@@ -1,5 +1,6 @@
 #pragma once
 
+
 const uint16_t one = 7;
 const uint16_t zro = 21;
 const uint16_t stop = 14;

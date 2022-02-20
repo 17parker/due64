@@ -1,4 +1,5 @@
 #pragma once
+#include "sprites.h"
 
 #define LCD_WR PIN_45C	//active HIGH
 #define LCD_RS PIN_47C	//active HIGH
