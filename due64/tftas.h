@@ -482,8 +482,4 @@ inline void init_tft() {
 	lcd_set_columns(0, 239);
 	lcd_set_pages(0, 319);
 	lcd_clear();
-	pio_output_write(PIOD, MEM_WRITE);
-	lcd_set_command();
-	lcd_strobe_write();
-	lcd_set_data();
 }
