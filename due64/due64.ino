@@ -6,7 +6,7 @@ In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 
 #include "SAM3XDUE.h"
 #include "tas_data.h"
-#include "tftas.h"
+#include "tasmc.h"
 
 
 const uint16_t status_response[28] = { off, off, b[0], b[0], b[0], b[0], b[0], b[1], b[0], b[1],	//0x05

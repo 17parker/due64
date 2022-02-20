@@ -7,12 +7,7 @@ const uint32_t col_addr_set = 0x2A << 1;
 const uint32_t page_addr_set = 0x2B << 1;
 const uint32_t mem_write = 0x2C << 1;
 
-//Each byte in the frame buffer selects one color from 256 possible colors
-//The 256 possible colors will be a hard-coded const array
-//The update one half of the frame buffer while the other is being shown
 volatile uint8_t frame_buffer[320][240] = { 0 };
-volatile uint8_t* const frame_buffer1 = frame_buffer[0];
-volatile uint8_t* const frame_buffer2 = frame_buffer[160]; //midpoint of the arr
 
 
 inline void lcd_strobe_write();
