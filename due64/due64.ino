@@ -36,7 +36,7 @@ void setup() {
 	Pin 2 - TIOA output
 	Pin 20 - PWMH0 output - PURPLE WIRE
 	*/
-	init_buffer();
+	init_controller_buffer();
 	pio_disable_pullup(PIOA, UTXD | URXD);
 	pio_enable_output(PIOA, UTXD);
 	pio_disable_output(PIOA, URXD);
@@ -78,8 +78,6 @@ void setup() {
 
 	//******TFT DISPLAY
 	init_tft();
-	smc_tft_lcd_setup();
-
 
 	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
@@ -133,7 +131,6 @@ void UART_Handler() {
 			}
 		}
 	}
-	update_flag = 1;
 }
 
 void loop() {

@@ -4,30 +4,20 @@
 #define LCD_WR PIN_45C	//active HIGH
 #define LCD_RS PIN_47C	//active HIGH
 //Commands for the TFT
-const uint32_t col_addr_set = 0x2A << 2;
-const uint32_t page_addr_set = 0x2B << 2;
-const uint32_t mem_write = 0x2C << 2;
+const uint32_t col_addr_set = 0x2A;
+const uint32_t page_addr_set = 0x2B;
+const uint32_t mem_write = 0x2C;
 
 volatile uint8_t frame_buffer[320][240] = { 0 };
 volatile uint8_t* const bus = (uint8_t*)0x60000000;
-volatile uint8_t shrek_flag = 0;
-volatile uint8_t update_flag = 0;
 
-inline void lcd_strobe_write();
 inline void lcd_set_command();
 inline void lcd_set_data();
 inline void lcd_set_columns(uint8_t start, uint8_t end);
 inline void lcd_set_pages(uint16_t start, uint16_t end);
 inline void lcd_clear();
-inline void lcd_display_on();
-inline void lcd_sleep_out();
-inline void lcd_software_reset();
 inline void init_tft();
-inline void lcd_write(uint8_t data);
-inline void lcd_test();
 inline void draw_frame();
-inline void draw_test();
-inline void lcd_bus_clear();
 
 const uint32_t num_blank = 0;
 const uint32_t num_0 = 0b00000110100110011001100110010110;
@@ -61,19 +51,6 @@ const uint32_t frame_line7 = 0b10000010010010001010001010000011;
 const uint32_t frame_line8 = 0b10000010001010001010001011111000;
 const uint32_t f[8] = { frame_line1,frame_line2,frame_line3,frame_line4,frame_line5,frame_line6,frame_line7,frame_line8 };
 
-inline void draw_test() {
-	for (uint32_t i = 0; i < 76800; ++i) {
-		*bus = 0x00;
-		*bus = 0x00;
-		*bus = 0xff;
-	}
-	for (uint32_t i = 0; i < 76800; ++i) {
-		*bus = 0xff;
-		*bus = 0x00;
-		*bus = 0x00;
-	}
-}
-
 inline void draw_frame() {
 	for (uint16_t i = 0; i < 320; ++i)
 		for (uint8_t j = 0; j < 240; ++j) {
@@ -83,7 +60,37 @@ inline void draw_frame() {
 		}
 }
 
-inline void lcd_bus_clear() {
+//Set the RS (D/CX) pin LOW to send command
+inline void lcd_set_command() { pio_output_write_LOW(PIOC, LCD_RS); }
+//Set the RS (D/CX) pin HIGH to send data
+inline void lcd_set_data() { pio_output_write_HIGH(PIOC, LCD_RS); }
+
+inline void lcd_set_columns(uint8_t start, uint8_t end) {
+	//This sends 1 byte to specify command and 4 bytes of data (2 for start, 2 for end)
+	lcd_set_command();
+	*bus = col_addr_set;
+	lcd_set_data();
+	*bus = 0x00;
+	*bus = start;
+	*bus = 0x00;
+	*bus = end;
+}
+
+//The values for pages goes from 0-319, and anything over 255 is over 1 byte, so this needs 2 bytes
+inline void lcd_set_pages(uint16_t start, uint16_t end) {
+	lcd_set_command();
+	*bus = page_addr_set;
+	lcd_set_data();
+	*bus = (start >> 8);
+	*bus = start;
+	*bus = (end >> 8);
+	*bus = end;
+}
+
+inline void lcd_clear() {
+	lcd_set_command();
+	*bus = mem_write;
+	lcd_set_data();
 	for (uint32_t i = 0; i < 76800; ++i) {
 		*bus = 0x00;
 		*bus = 0x00;
@@ -91,117 +98,26 @@ inline void lcd_bus_clear() {
 	}
 }
 
-inline void lcd_write(uint8_t data) {
-	*((uint32_t*)0x60000000) = data;
-}
-
-//Set the RS (D/CX) pin LOW to send command
-inline void lcd_set_command() { pio_output_write_LOW(PIOC, LCD_RS); }
-//Set the RS (D/CX) pin HIGH to send data
-inline void lcd_set_data() { pio_output_write_HIGH(PIOC, LCD_RS); }
-inline void lcd_strobe_write() {
-	pio_output_write_LOW(PIOC, LCD_WR);
-	pio_output_write_HIGH(PIOC, LCD_WR);
-}
-
-inline void lcd_set_columns(uint8_t start, uint8_t end) {
-	//This sends 1 byte to specify command and 4 bytes of data (2 for start, 2 for end)
-	pio_output_write(PIOC, col_addr_set);
-	lcd_set_command();
-	lcd_strobe_write();
-	lcd_set_data();
-	pio_output_write(PIOC, 0x00);
-	lcd_strobe_write();
-	pio_output_write(PIOC, start << 2);
-	lcd_strobe_write();
-	pio_output_write(PIOC, 0x00);
-	lcd_strobe_write();
-	pio_output_write(PIOC, end << 2);
-	lcd_strobe_write();
-}
-
-//The values for pages goes from 0-319, and anything over 255 is over 1 byte, so this needs 2 bytes
-inline void lcd_set_pages(uint16_t start, uint16_t end) {
-	lcd_set_command();
-	pio_output_write(PIOC, page_addr_set);
-	lcd_strobe_write();
-	lcd_set_data();
-	pio_output_write(PIOC, start >> 6);
-	lcd_strobe_write();
-	pio_output_write(PIOC, start << 2);
-	lcd_strobe_write();
-	pio_output_write(PIOD, end >> 6);
-	lcd_strobe_write();
-	pio_output_write(PIOD, end << 2);
-	lcd_strobe_write();
-}
-
-inline void lcd_clear() {
-	lcd_set_command();
-	pio_output_write(PIOC, mem_write);
-	lcd_strobe_write();
-	lcd_set_data();
-	for (uint32_t pixels = 0; pixels <= 76800; ++pixels) {
-		//Blue
-		pio_output_write(PIOC, 0x00);
-		lcd_strobe_write();
-		//Green
-		pio_output_write(PIOC, 0x00);
-		lcd_strobe_write();
-		//Red
-		pio_output_write(PIOC, 0x00);
-		lcd_strobe_write();
-	}
-}
-
-inline void lcd_display_on() {
-	pio_output_write(PIOC, 0x29 << 2);
-	lcd_set_command();
-	lcd_strobe_write();
-	lcd_set_data();
-	delayMicroseconds(5000);
-}
-
-inline void lcd_sleep_out() {
-	lcd_set_command();
-	pio_output_write(PIOC, 0x11 << 2);
-	lcd_strobe_write();
-	lcd_set_data();
-	delayMicroseconds(5000);		//There needs to be a short delay to allow voltages to stabilize
-}
-
-inline void lcd_software_reset() {
-	lcd_set_command();
-	pio_output_write(PIOC, 0x01 << 2);
-	lcd_strobe_write();
-	lcd_set_data();
-	delayMicroseconds(5000);
-}
-
-inline void lcd_test() {
-	lcd_write(0x00);
-	lcd_write(0xff);
-	lcd_write(0x00);
-}
-
 inline void init_tft() {
-	for(uint16_t i = 0; i < 320; ++i)
-		for (uint8_t j = 0; j < 240; ++j) 
-			frame_buffer[i][j] = 115;		
+	for (uint16_t i = 0; i < 320; ++i)
+		for (uint8_t j = 0; j < 240; ++j)
+			frame_buffer[i][j] = 115;
 	pio_disable_pullup(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_45C | PIN_47C);
 	pio_enable_output(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_45C | PIN_47C);
-	pio_enable_pio(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_45C | PIN_47C);
-	pio_output_write_HIGH(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_45C | PIN_47C);
-	pio_enable_output_write(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_47C);
-	pio_disable_output_write(PIOC, LCD_WR);
-	lcd_software_reset();
-	lcd_display_on();
-	lcd_sleep_out();
+	pio_enable_pio(PIOC, PIN_47C);
+	pio_output_write_HIGH(PIOC, PIN_47C);
+	smc_tft_lcd_setup();
+	lcd_set_command();
+	*bus = 0x01;	//software reset
+	delayMicroseconds(5000);
+	*bus = 0x29;	//display on
+	delayMicroseconds(5000);
+	*bus = 0x11;	//sleep out
+	delayMicroseconds(5000);
 	lcd_set_columns(0, 239);
 	lcd_set_pages(0, 319);
 	lcd_clear();
 	lcd_set_command();
-	pio_output_write(PIOC, mem_write);
-	lcd_strobe_write();
+	*bus = mem_write;
 	lcd_set_data();
 }

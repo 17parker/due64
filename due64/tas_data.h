@@ -126,7 +126,7 @@ Each packet of transmitted data is formatted like this:
 So (2 off bits) + (32 bits when controller responds) + (stop and off) = 36
 The delay timings are mostly arbitrary, but ~45*(n bits)
 */
-void init_buffer() {
+void init_controller_buffer() {
 	buffer[0] = off;
 	buffer[1] = off;
 	buffer[34] = stop;
