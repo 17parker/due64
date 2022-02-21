@@ -1,6 +1,5 @@
 #pragma once
 
-
 const uint16_t one = 7;
 const uint16_t zro = 21;
 const uint16_t stop = 14;
@@ -73,45 +72,47 @@ const area areas[area_count] = { bootup, outside, to_BoB1, BoB1, end };
 const area* volatile current_area = areas;
 volatile uint32_t areas_remaining = area_count;
 const instructions* volatile current_inst = nullptr;
+volatile uint32_t current_data = 0;
 volatile uint32_t inst_remaining = 0;
 volatile uint8_t cycles_remaining = 0;
 const char* volatile current_label;
 volatile uint8_t out_of_inst = 0;
 
 inline void load_inst(const instructions* inst) {
+	current_data = inst->data;
 	cycles_remaining = inst->cycles;
-	buffer[2] = b[inst->data & 1];
-	buffer[3] = b[(inst->data >> 1) & 1];
-	buffer[4] = b[(inst->data >> 2) & 1];
-	buffer[5] = b[(inst->data >> 3) & 1];
-	buffer[6] = b[(inst->data >> 4) & 1];
-	buffer[7] = b[(inst->data >> 5) & 1];
-	buffer[8] = b[(inst->data >> 6) & 1];
-	buffer[9] = b[(inst->data >> 7) & 1];
-	buffer[10] = b[(inst->data >> 8) & 1];
-	buffer[11] = b[(inst->data >> 9) & 1];
-	buffer[12] = b[(inst->data >> 10) & 1];
-	buffer[13] = b[(inst->data >> 11) & 1];
-	buffer[14] = b[(inst->data >> 12) & 1];
-	buffer[15] = b[(inst->data >> 13) & 1];
-	buffer[16] = b[(inst->data >> 14) & 1];
-	buffer[17] = b[(inst->data >> 15) & 1];
-	buffer[18] = b[(inst->data >> 16) & 1];
-	buffer[19] = b[(inst->data >> 17) & 1];
-	buffer[20] = b[(inst->data >> 18) & 1];
-	buffer[21] = b[(inst->data >> 19) & 1];
-	buffer[22] = b[(inst->data >> 20) & 1];
-	buffer[23] = b[(inst->data >> 21) & 1];
-	buffer[24] = b[(inst->data >> 22) & 1];
-	buffer[25] = b[(inst->data >> 23) & 1];
-	buffer[26] = b[(inst->data >> 24) & 1];
-	buffer[27] = b[(inst->data >> 25) & 1];
-	buffer[28] = b[(inst->data >> 26) & 1];
-	buffer[29] = b[(inst->data >> 27) & 1];
-	buffer[30] = b[(inst->data >> 28) & 1];
-	buffer[31] = b[(inst->data >> 29) & 1];
-	buffer[32] = b[(inst->data >> 30) & 1];
-	buffer[33] = b[(inst->data >> 31) & 1];
+	buffer[2] = b[current_data & 1];
+	buffer[3] = b[(current_data >> 1) & 1];
+	buffer[4] = b[(current_data >> 2) & 1];
+	buffer[5] = b[(current_data >> 3) & 1];
+	buffer[6] = b[(current_data >> 4) & 1];
+	buffer[7] = b[(current_data >> 5) & 1];
+	buffer[8] = b[(current_data >> 6) & 1];
+	buffer[9] = b[(current_data >> 7) & 1];
+	buffer[10] = b[(current_data >> 8) & 1];
+	buffer[11] = b[(current_data >> 9) & 1];
+	buffer[12] = b[(current_data >> 10) & 1];
+	buffer[13] = b[(current_data >> 11) & 1];
+	buffer[14] = b[(current_data >> 12) & 1];
+	buffer[15] = b[(current_data >> 13) & 1];
+	buffer[16] = b[(current_data >> 14) & 1];
+	buffer[17] = b[(current_data >> 15) & 1];
+	buffer[18] = b[(current_data >> 16) & 1];
+	buffer[19] = b[(current_data >> 17) & 1];
+	buffer[20] = b[(current_data >> 18) & 1];
+	buffer[21] = b[(current_data >> 19) & 1];
+	buffer[22] = b[(current_data >> 20) & 1];
+	buffer[23] = b[(current_data >> 21) & 1];
+	buffer[24] = b[(current_data >> 22) & 1];
+	buffer[25] = b[(current_data >> 23) & 1];
+	buffer[26] = b[(current_data >> 24) & 1];
+	buffer[27] = b[(current_data >> 25) & 1];
+	buffer[28] = b[(current_data >> 26) & 1];
+	buffer[29] = b[(current_data >> 27) & 1];
+	buffer[30] = b[(current_data >> 28) & 1];
+	buffer[31] = b[(current_data >> 29) & 1];
+	buffer[32] = b[(current_data >> 30) & 1];
+	buffer[33] = b[(current_data >> 31) & 1];
 }
 inline void load_area(const area* area) {
 	inst_remaining = area->instruction_count;

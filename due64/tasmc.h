@@ -10,14 +10,28 @@ const uint32_t mem_write = 0x2C;
 
 volatile uint8_t frame_buffer[320][240] = { 0 };
 volatile uint8_t* const bus = (uint8_t*)0x60000000;
+extern volatile uint32_t current_data;
+volatile uint8_t update_buttons_flag = 0;
 
-inline void lcd_set_command();
-inline void lcd_set_data();
+//Set the RS (D/CX) pin LOW to send command
+inline void lcd_set_command() { pio_output_write_LOW(PIOC, LCD_RS); }
+//Set the RS (D/CX) pin HIGH to send data
+inline void lcd_set_data() { pio_output_write_HIGH(PIOC, LCD_RS); }
+inline void lcd_mem_write() {
+	lcd_set_command();
+	*bus = mem_write;
+	lcd_set_data();
+}
 inline void lcd_set_columns(uint8_t start, uint8_t end);
 inline void lcd_set_pages(uint16_t start, uint16_t end);
 inline void lcd_clear();
 inline void init_tft();
-inline void draw_frame();
+inline void init_frame_buffer();
+inline void draw_frame_buffer();
+inline void update_frame_count_buffer();
+inline void draw_frame_count_label();
+inline void draw_frame_num();
+inline void draw_buttons();
 
 const uint32_t num_blank = 0;
 const uint32_t num_0 = 0b00000110100110011001100110010110;
@@ -51,7 +65,201 @@ const uint32_t frame_line7 = 0b10000010010010001010001010000011;
 const uint32_t frame_line8 = 0b10000010001010001010001011111000;
 const uint32_t f[8] = { frame_line1,frame_line2,frame_line3,frame_line4,frame_line5,frame_line6,frame_line7,frame_line8 };
 
-inline void draw_frame() {
+inline void update_frame_count_buffer() {
+	num_buff[0] = num[tene0];
+	num_buff[1] = num[tene1];
+	num_buff[2] = num[tene2];
+	num_buff[3] = num[tene3];
+	num_buff[4] = num[tene4];
+	num_buff[5] = num[tene5];
+	num_buff[6] = num[tene6];
+}
+
+inline void draw_frame_count_label() {
+	lcd_set_columns(206, 237);
+	lcd_set_pages(310, 317);
+	lcd_mem_write();
+	const uint32_t* volatile line_ptr = f;
+	for (uint8_t i = 0; i < 8; ++i) {
+		for (uint8_t j = 0; j < 32; ++j) {
+			if (((*line_ptr) >> j) & 1) {
+				*bus = 0xff;
+				*bus = 0xff;
+				*bus = 0xff;
+			}
+			else {
+				*bus = 0x00;
+				*bus = 0x00;
+				*bus = 0x00;
+			}
+		}
+		++line_ptr;
+	}
+}
+
+inline void draw_buttons() {
+	lcd_set_pages(0, 320);
+	lcd_set_columns(1, 16);
+	lcd_mem_write();
+	const uint8_t* volatile ptr;
+	if (current_data & 1)
+		ptr = button_A;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 1) & 1)
+		ptr = button_A;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+}
+
+inline void draw_frame_num() {
+	lcd_set_pages(310, 317);
+	lcd_set_columns(168, 171);
+	lcd_mem_write();
+	for (uint8_t i = 0; i <= 31; ++i) {
+		*bus = 0x00;
+		*bus = 0x00;
+		*bus = 0x00;
+	}
+	for (uint8_t i = 0; i <= 31; ++i) {
+		if ((num_buff[0] >> i) & 1) {
+			*bus = 0xff;
+			*bus = 0xff;
+			*bus = 0xff;
+		}
+		else {
+			*bus = 0x00;
+			*bus = 0x00;
+			*bus = 0x00;
+		}
+	}
+	lcd_set_columns(173, 176);
+	lcd_mem_write();
+	for (uint8_t i = 0; i <= 31; ++i) {
+		*bus = 0x00;
+		*bus = 0x00;
+		*bus = 0x00;
+	}
+	for (uint8_t i = 0; i <= 31; ++i) {
+		if ((num_buff[1] >> i) & 1) {
+			*bus = 0xff;
+			*bus = 0xff;
+			*bus = 0xff;
+		}
+		else {
+			*bus = 0x00;
+			*bus = 0x00;
+			*bus = 0x00;
+		}
+	}
+	lcd_set_columns(178, 181);
+	lcd_mem_write();
+	for (uint8_t i = 0; i <= 31; ++i) {
+		*bus = 0x00;
+		*bus = 0x00;
+		*bus = 0x00;
+	}
+	for (uint8_t i = 0; i <= 31; ++i) {
+		if ((num_buff[2] >> i) & 1) {
+			*bus = 0xff;
+			*bus = 0xff;
+			*bus = 0xff;
+		}
+		else {
+			*bus = 0x00;
+			*bus = 0x00;
+			*bus = 0x00;
+		}
+	}
+	lcd_set_columns(183, 186);
+	lcd_mem_write();
+	for (uint8_t i = 0; i <= 31; ++i) {
+		*bus = 0x00;
+		*bus = 0x00;
+		*bus = 0x00;
+	}
+	for (uint8_t i = 0; i <= 31; ++i) {
+		if ((num_buff[3] >> i) & 1) {
+			*bus = 0xff;
+			*bus = 0xff;
+			*bus = 0xff;
+		}
+		else {
+			*bus = 0x00;
+			*bus = 0x00;
+			*bus = 0x00;
+		}
+	}
+	lcd_set_columns(188, 191);
+	lcd_mem_write();
+	for (uint8_t i = 0; i <= 31; ++i) {
+		*bus = 0x00;
+		*bus = 0x00;
+		*bus = 0x00;
+	}
+	for (uint8_t i = 0; i <= 31; ++i) {
+		if ((num_buff[4] >> i) & 1) {
+			*bus = 0xff;
+			*bus = 0xff;
+			*bus = 0xff;
+		}
+		else {
+			*bus = 0x00;
+			*bus = 0x00;
+			*bus = 0x00;
+		}
+	}
+	lcd_set_columns(193, 196);
+	lcd_mem_write();
+	for (uint8_t i = 0; i <= 31; ++i) {
+		*bus = 0x00;
+		*bus = 0x00;
+		*bus = 0x00;
+	}
+	for (uint8_t i = 0; i <= 31; ++i) {
+		if ((num_buff[5] >> i) & 1) {
+			*bus = 0xff;
+			*bus = 0xff;
+			*bus = 0xff;
+		}
+		else {
+			*bus = 0x00;
+			*bus = 0x00;
+			*bus = 0x00;
+		}
+	}
+	lcd_set_columns(198, 201);
+	lcd_mem_write();
+	for (uint8_t i = 0; i <= 31; ++i) {
+		*bus = 0x00;
+		*bus = 0x00;
+		*bus = 0x00;
+	}
+	for (uint8_t i = 0; i <= 31; ++i) {
+		if ((num_buff[6] >> i) & 1) {
+			*bus = 0xff;
+			*bus = 0xff;
+			*bus = 0xff;
+		}
+		else {
+			*bus = 0x00;
+			*bus = 0x00;
+			*bus = 0x00;
+		}
+	}
+}
+
+inline void init_frame_buffer() {
+	for (uint16_t i = 0; i < 320; ++i)
+		for (uint8_t j = 0; j < 240; ++j)
+			frame_buffer[i][j] = 115;
+}
+
+inline void draw_frame_buffer() {
 	for (uint16_t i = 0; i < 320; ++i)
 		for (uint8_t j = 0; j < 240; ++j) {
 			*bus = color_palette[frame_buffer[i][j]][0];
@@ -59,11 +267,6 @@ inline void draw_frame() {
 			*bus = color_palette[frame_buffer[i][j]][2];
 		}
 }
-
-//Set the RS (D/CX) pin LOW to send command
-inline void lcd_set_command() { pio_output_write_LOW(PIOC, LCD_RS); }
-//Set the RS (D/CX) pin HIGH to send data
-inline void lcd_set_data() { pio_output_write_HIGH(PIOC, LCD_RS); }
 
 inline void lcd_set_columns(uint8_t start, uint8_t end) {
 	//This sends 1 byte to specify command and 4 bytes of data (2 for start, 2 for end)
@@ -88,9 +291,7 @@ inline void lcd_set_pages(uint16_t start, uint16_t end) {
 }
 
 inline void lcd_clear() {
-	lcd_set_command();
-	*bus = mem_write;
-	lcd_set_data();
+	lcd_mem_write();
 	for (uint32_t i = 0; i < 76800; ++i) {
 		*bus = 0x00;
 		*bus = 0x00;
@@ -99,9 +300,6 @@ inline void lcd_clear() {
 }
 
 inline void init_tft() {
-	for (uint16_t i = 0; i < 320; ++i)
-		for (uint8_t j = 0; j < 240; ++j)
-			frame_buffer[i][j] = 115;
 	pio_disable_pullup(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_45C | PIN_47C);
 	pio_enable_output(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_45C | PIN_47C);
 	pio_enable_pio(PIOC, PIN_47C);
@@ -117,7 +315,5 @@ inline void init_tft() {
 	lcd_set_columns(0, 239);
 	lcd_set_pages(0, 319);
 	lcd_clear();
-	lcd_set_command();
-	*bus = mem_write;
-	lcd_set_data();
+	lcd_mem_write();
 }

@@ -78,6 +78,9 @@ void setup() {
 
 	//******TFT DISPLAY
 	init_tft();
+	draw_frame_count_label();
+	update_frame_count_buffer();
+	draw_frame_num();
 
 	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
@@ -131,7 +134,15 @@ void UART_Handler() {
 			}
 		}
 	}
+	update_buttons_flag = 1;
+	update_frame_count_buffer();
 }
 
 void loop() {
+	if (update_buttons_flag) {
+		draw_buttons();
+		draw_frame_num();
+		update_buttons_flag = 0;
+	}
+
 }
