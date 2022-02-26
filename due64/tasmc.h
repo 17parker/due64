@@ -65,6 +65,27 @@ const uint32_t frame_line7 = 0b10000010010010001010001010000011;
 const uint32_t frame_line8 = 0b10000010001010001010001011111000;
 const uint32_t f[8] = { frame_line1,frame_line2,frame_line3,frame_line4,frame_line5,frame_line6,frame_line7,frame_line8 };
 
+enum button_offsets {
+	A,
+	B,
+	Z,
+	START,
+	DU,
+	DD,
+	DL,
+	DR,
+	RST,
+	UNUSED,
+	L,
+	R,
+	CU,
+	CD,
+	CL,
+	CR,
+	X = 16,
+	Y = 24
+};
+
 inline void update_frame_count_buffer() {
 	num_buff[0] = num[tene0];
 	num_buff[1] = num[tene1];
@@ -98,18 +119,90 @@ inline void draw_frame_count_label() {
 }
 
 inline void draw_buttons() {
-	lcd_set_pages(0, 320);
-	lcd_set_columns(1, 16);
+	lcd_set_pages(5, 320);
+	lcd_set_columns(5, 20);
 	lcd_mem_write();
 	const uint8_t* volatile ptr;
-	if (current_data & 1)
+	if (current_data & 1)			//A
 		ptr = button_A;
 	else
 		ptr = ublack;
 	for (uint16_t i = 0; i < 768; ++i)
 		*bus = *ptr++;
-	if ((current_data >> 1) & 1)
-		ptr = button_A;
+	if ((current_data >> 1) & 1)   //B
+		ptr = button_B;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 2) & 1)   //Z
+		ptr = button_Z;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 3) & 1)   //START
+		ptr = button_START;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 4) & 1)   //DU
+		ptr = button_DU;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 5) & 1)   //DD
+		ptr = button_DD;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 6) & 1)   //DL
+		ptr = button_DL;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 7) & 1)   //DR
+		ptr = button_DR;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 10) & 1)   //L trigger
+		ptr = button_L;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 11) & 1)   //R trigger
+		ptr = button_R;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 12) & 1)   //CU
+		ptr = button_CU;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 13) & 1)   //CD
+		ptr = button_CD;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 14) & 1)   //CL
+		ptr = button_CL;
+	else
+		ptr = ublack;
+	for (uint16_t i = 0; i < 768; ++i)
+		*bus = *ptr++;
+	if ((current_data >> 15) & 1)   //CR
+		ptr = button_CR;
 	else
 		ptr = ublack;
 	for (uint16_t i = 0; i < 768; ++i)
