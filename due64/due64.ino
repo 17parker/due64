@@ -36,7 +36,6 @@ void setup() {
 	Pin 2 - TIOA output
 	Pin 20 - PWMH0 output - PURPLE WIRE
 	*/
-	init_controller_buffer();
 	pio_disable_pullup(PIOA, UTXD | URXD);
 	pio_enable_output(PIOA, UTXD);
 	pio_disable_output(PIOA, URXD);
@@ -50,6 +49,7 @@ void setup() {
 	pmc_enable_periph_clk(ID_UART);
 	pmc_enable_periph_clk(ID_TC0);
 	pmc_enable_periph_clk(ID_SMC);
+	pmc_enable_periph_clk(ID_DMAC);
 
 	REG_TC0_CMR0 = 1 | (1 << 6) | (1 << 14) | (1 << 15) | (1 << 16) | (0b11 << 18);	//Using TIOA on TC0
 	REG_TC0_RC0 = 21;
@@ -81,11 +81,23 @@ void setup() {
 	draw_frame_count_label();
 	update_frame_count_buffer();
 	draw_frame_num();
+	init_smc_dma();
+	init_controller_buffer();
+	smc_dma_ch0_set_source_addr(button_A);
+	REG_DMAC_EBCIER = 1;
+	REG_DMAC_EN = 1;
+	smc_dma_ch0_source_creq();
+	while(1){}
 
 	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
 	load_area(current_area);
+}
+
+void DMAC_Handler() {
+	smc_dma_ch0_set_source_addr(button_A);
+	smc_dma_ch0_source_creq();
 }
 
 void TC0_Handler() {
