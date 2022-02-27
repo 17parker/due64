@@ -85,9 +85,16 @@ void setup() {
 	init_controller_buffer();
 	smc_dma_ch0_set_source_addr(button_A);
 	REG_DMAC_EBCIER = 1;
+	NVIC_ClearPendingIRQ(DMAC_IRQn);
+	NVIC_SetPriority(DMAC_IRQn, 5);
+	NVIC_EnableIRQ(DMAC_IRQn);
 	REG_DMAC_EN = 1;
 	smc_dma_ch0_source_creq();
-	while(1){}
+
+	while(1){
+		smc_dma_ch0_set_source_addr(button_A);
+		smc_dma_ch0_source_creq();
+	}
 
 	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
