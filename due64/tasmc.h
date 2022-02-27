@@ -122,13 +122,16 @@ inline void draw_buttons() {
 	lcd_set_pages(5, 320);
 	lcd_set_columns(5, 20);
 	lcd_mem_write();
-	const uint8_t* volatile ptr;
+	volatile const uint8_t* volatile ptr;
+	REG_DMAC_CTRLA0 = 768;
 	if (current_data & 1)			//A
-		ptr = button_A;
+		REG_DMAC_SADDR0 = (uint32_t)button_A;
 	else
-		ptr = ublack;
-	for (uint16_t i = 0; i < 768; ++i)
-		*bus = *ptr++;
+		REG_DMAC_SADDR0 = (uint32_t)ublack;
+	REG_DMAC_CHER |= 1;
+	return;
+
+
 	if ((current_data >> 1) & 1)   //B
 		ptr = button_B;
 	else

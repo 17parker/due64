@@ -28,7 +28,6 @@ volatile uint8_t tene4 = 0;
 volatile uint8_t tene5 = 0;
 volatile uint8_t tene6 = 0;
 
-
 void setup() {
 	/*Pins for interfacing with the N64
 	Pin 0 - UART RX - BROWN WIRE
@@ -83,18 +82,12 @@ void setup() {
 	draw_frame_num();
 	init_smc_dma();
 	init_controller_buffer();
-	smc_dma_ch0_set_source_addr(button_A);
-	REG_DMAC_EBCIER = 1;
+	//REG_DMAC_EBCIER = 1;
 	NVIC_ClearPendingIRQ(DMAC_IRQn);
 	NVIC_SetPriority(DMAC_IRQn, 5);
-	NVIC_EnableIRQ(DMAC_IRQn);
 	REG_DMAC_EN = 1;
-	smc_dma_ch0_source_creq();
-
-	while(1){
-		smc_dma_ch0_set_source_addr(button_A);
-		smc_dma_ch0_source_creq();
-	}
+	//NVIC_EnableIRQ(DMAC_IRQn);
+	//REG_DMAC_CHER = 1;
 
 	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
@@ -103,8 +96,11 @@ void setup() {
 }
 
 void DMAC_Handler() {
-	smc_dma_ch0_set_source_addr(button_A);
-	smc_dma_ch0_source_creq();
+	volatile uint32_t dummy = REG_DMAC_EBCISR;
+	REG_DMAC_SADDR0 = (uint32_t)button_A;
+	REG_DMAC_CTRLA0 = 3;
+	delayMicroseconds(100);
+	REG_DMAC_CHER = 1;
 }
 
 void TC0_Handler() {
@@ -160,7 +156,7 @@ void UART_Handler() {
 void loop() {
 	if (update_buttons_flag) {
 		draw_buttons();
-		draw_frame_num();
+		//draw_frame_num();
 		update_buttons_flag = 0;
 	}
 
