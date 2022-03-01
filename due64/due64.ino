@@ -19,15 +19,6 @@ const uint32_t status_delay = 1350;
 volatile uint8_t rx_read[8];
 const uint16_t rx_count = 8;
 
-//Powers of 10, E-notation (ex: tene0 = 10^0), stores the digits
-volatile uint8_t tene0 = 0;
-volatile uint8_t tene1 = 0;
-volatile uint8_t tene2 = 0;
-volatile uint8_t tene3 = 0;
-volatile uint8_t tene4 = 0;
-volatile uint8_t tene5 = 0;
-volatile uint8_t tene6 = 0;
-
 void setup() {
 	/*Pins for interfacing with the N64
 	Pin 0 - UART RX - BROWN WIRE
@@ -78,29 +69,36 @@ void setup() {
 	//******TFT DISPLAY
 	init_tft();
 	draw_frame_count_label();
-	update_frame_count_buffer();
 	draw_frame_num();
 	init_smc_dma();
 	init_controller_buffer();
-	//REG_DMAC_EBCIER = 1;
+	/*
+	REG_DMAC_EBCIER = 1;
 	NVIC_ClearPendingIRQ(DMAC_IRQn);
 	NVIC_SetPriority(DMAC_IRQn, 5);
-	REG_DMAC_EN = 1;
-	//NVIC_EnableIRQ(DMAC_IRQn);
-	//REG_DMAC_CHER = 1;
-
+	NVIC_EnableIRQ(DMAC_IRQn);
+	*/
+	REG_DMAC_EN = 0b11;
 	REG_PWM_ENA |= 1;
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
+	tene0 = 0;
+	tene1 = 0;
+	tene2 = 0;
+	tene3 = 0;
+	tene4 = 0;
+	tene5 = 0;
+	tene6 = 0;
+	update_frame_count_buffer();
+	draw_frame_num();
 	load_area(current_area);
+	update_buttons_lli();
 }
 
 void DMAC_Handler() {
 	volatile uint32_t dummy = REG_DMAC_EBCISR;
-	REG_DMAC_SADDR0 = (uint32_t)button_A;
-	REG_DMAC_CTRLA0 = 3;
-	delayMicroseconds(100);
-	REG_DMAC_CHER = 1;
+	while (REG_DMAC_CHSR & 1) {}
+	lli_start_button_draw();
 }
 
 void TC0_Handler() {
@@ -122,7 +120,6 @@ void TC0_Handler() {
 	REG_UART_IER = (1 << 3);
 	return;
 }
-
 
 void UART_Handler() {
 	REG_UART_IDR = ~0;
@@ -155,8 +152,9 @@ void UART_Handler() {
 
 void loop() {
 	if (update_buttons_flag) {
-		draw_buttons();
-		//draw_frame_num();
+		draw_frame_num();
+		update_buttons_lli();
+		lli_start_button_draw();
 		update_buttons_flag = 0;
 	}
 

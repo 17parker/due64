@@ -1,19 +1,19 @@
 #pragma once
 
-const uint16_t one = 7;
-const uint16_t zro = 21;
-const uint16_t stop = 14;
-const uint16_t off = 0;
-const uint16_t b[2] = { zro, one };
+const uint32_t one = 7;
+const uint32_t zro = 21;
+const uint32_t stop = 14;
+const uint32_t off = 0;
+const uint32_t b[2] = { zro, one };
 
-volatile uint16_t buffer[36];
-const uint16_t buffer_size = 36;
+volatile uint32_t buffer[36];
+const uint32_t buffer_size = 36;
 const uint32_t buffer_delay = 1520;
 volatile uint32_t frame_count = 0;
 
 struct instructions {
 	uint32_t data;
-	uint8_t cycles;
+	uint32_t cycles;
 };
 struct area {
 	const uint32_t instruction_count;
@@ -66,8 +66,18 @@ const instructions L_R_inst[L_R_count] = { {0xc00,4} };
 const char* L_R_label = "    L_R";
 const area L_R = { L_R_count, L_R_inst,L_R_label };
 
+const uint32_t all_count = 2;
+const instructions all_inst[all_count] = { {0x0000FFFF,1},{0,1} };
+const char* all_label = "   test";
+const area all = { all_count, all_inst, all_label };
+/*
+const uint32_t area_count = 1;
+const area areas[area_count] = { all };
+*/
+
 const uint32_t area_count = 5;
 const area areas[area_count] = { bootup, outside, to_BoB1, BoB1, end };
+
 
 const area* volatile current_area = areas;
 volatile uint32_t areas_remaining = area_count;
