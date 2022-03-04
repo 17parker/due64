@@ -79,9 +79,6 @@ void setup() {
 	NVIC_EnableIRQ(DMAC_IRQn);
 	*/
 	REG_DMAC_EN = 0b11;
-	REG_PWM_ENA |= 1;
-	REG_UART_RPR = (uint32_t)rx_read;
-	REG_UART_RCR = rx_count;
 	tene0 = 0;
 	tene1 = 0;
 	tene2 = 0;
@@ -89,16 +86,20 @@ void setup() {
 	tene4 = 0;
 	tene5 = 0;
 	tene6 = 0;
-	update_frame_count_buffer();
-	draw_frame_num();
+	lli_update_frame_numbers();
+	lli_start_number_draw();
 	load_area(current_area);
 	update_buttons_lli();
+	dmac_wait_for_done();
+	REG_PWM_ENA |= 1;
+	REG_UART_RPR = (uint32_t)rx_read;
+	REG_UART_RCR = rx_count;
 }
 
 void DMAC_Handler() {
 	volatile uint32_t dummy = REG_DMAC_EBCISR;
 	while (REG_DMAC_CHSR & 1) {}
-	lli_start_button_draw();
+	lli_start_frame_draw();
 }
 
 void TC0_Handler() {
@@ -147,15 +148,13 @@ void UART_Handler() {
 		}
 	}
 	update_buttons_flag = 1;
-	update_frame_count_buffer();
+	lli_update_frame_numbers();
 }
 
 void loop() {
 	if (update_buttons_flag) {
-		draw_frame_num();
 		update_buttons_lli();
-		lli_start_button_draw();
+		lli_start_frame_draw();
 		update_buttons_flag = 0;
 	}
-
 }

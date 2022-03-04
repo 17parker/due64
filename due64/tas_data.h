@@ -70,11 +70,9 @@ const uint32_t all_count = 2;
 const instructions all_inst[all_count] = { {0x0000FFFF,1},{0,1} };
 const char* all_label = "   test";
 const area all = { all_count, all_inst, all_label };
-/*
-const uint32_t area_count = 1;
-const area areas[area_count] = { all };
-*/
 
+//const uint32_t area_count = 1;
+//const area areas[area_count] = { all };
 const uint32_t area_count = 5;
 const area areas[area_count] = { bootup, outside, to_BoB1, BoB1, end };
 
