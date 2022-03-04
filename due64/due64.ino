@@ -92,7 +92,7 @@ void setup() {
 	update_buttons_lli();
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
-	//dmac_wait_for_done();
+	dmac_wait_for_done();
 }
 
 void DMAC_Handler() {
