@@ -78,8 +78,6 @@ void setup() {
 	NVIC_EnableIRQ(DMAC_IRQn);
 	*/
 	REG_PWM_ENA |= 1;
-	REG_UART_RPR = (uint32_t)rx_read;
-	REG_UART_RCR = rx_count;
 	REG_DMAC_EN = 0b11;
 	tene0 = 0;
 	tene1 = 0;
@@ -92,6 +90,8 @@ void setup() {
 	lli_start_number_draw();
 	load_area(current_area);
 	update_buttons_lli();
+	REG_UART_RPR = (uint32_t)rx_read;
+	REG_UART_RCR = rx_count;
 	//dmac_wait_for_done();
 }
 
