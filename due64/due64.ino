@@ -69,7 +69,6 @@ void setup() {
 	//******TFT DISPLAY
 	init_tft();
 	draw_frame_count_label();
-	draw_frame_num();
 	init_smc_dma();
 	init_controller_buffer();
 	/*
@@ -78,6 +77,9 @@ void setup() {
 	NVIC_SetPriority(DMAC_IRQn, 5);
 	NVIC_EnableIRQ(DMAC_IRQn);
 	*/
+	REG_PWM_ENA |= 1;
+	REG_UART_RPR = (uint32_t)rx_read;
+	REG_UART_RCR = rx_count;
 	REG_DMAC_EN = 0b11;
 	tene0 = 0;
 	tene1 = 0;
@@ -90,16 +92,13 @@ void setup() {
 	lli_start_number_draw();
 	load_area(current_area);
 	update_buttons_lli();
-	dmac_wait_for_done();
-	REG_PWM_ENA |= 1;
-	REG_UART_RPR = (uint32_t)rx_read;
-	REG_UART_RCR = rx_count;
+	//dmac_wait_for_done();
 }
 
 void DMAC_Handler() {
 	volatile uint32_t dummy = REG_DMAC_EBCISR;
 	while (REG_DMAC_CHSR & 1) {}
-	lli_start_frame_draw();
+	//lli_start_frame_draw();
 }
 
 void TC0_Handler() {

@@ -235,13 +235,13 @@ inline void lli_start_frame_draw() {
 }
 
 inline void lli_update_frame_numbers() {
-	lli_digit_e0.saddr = (uint32_t)numbers[tene0];
-	lli_digit_e1.saddr = (uint32_t)numbers[tene1];
-	lli_digit_e2.saddr = (uint32_t)numbers[tene2];
-	lli_digit_e3.saddr = (uint32_t)numbers[tene3];
-	lli_digit_e4.saddr = (uint32_t)numbers[tene4];
-	lli_digit_e5.saddr = (uint32_t)numbers[tene5];
-	lli_digit_e6.saddr = (uint32_t)numbers[tene6];
+	lli_digit_e0.saddr = (uint32_t)(numbers[tene0]);
+	lli_digit_e1.saddr = (uint32_t)(numbers[tene1]);
+	lli_digit_e2.saddr = (uint32_t)(numbers[tene2]);
+	lli_digit_e3.saddr = (uint32_t)(numbers[tene3]);
+	lli_digit_e4.saddr = (uint32_t)(numbers[tene4]);
+	lli_digit_e5.saddr = (uint32_t)(numbers[tene5]);
+	lli_digit_e6.saddr = (uint32_t)(numbers[tene6]);
 }
 
 inline void lli_start_number_draw() {
