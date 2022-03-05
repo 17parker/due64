@@ -6,7 +6,7 @@ const uint32_t stop = 14;
 const uint32_t off = 0;
 const uint32_t b[2] = { zro, one };
 
-volatile uint32_t buffer[36];
+volatile uint16_t buffer[36];
 const uint32_t buffer_size = 36;
 const uint32_t buffer_delay = 1520;
 volatile uint32_t frame_count = 0;

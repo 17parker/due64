@@ -25,7 +25,7 @@ void setup() {
 	Pin 1 - UART TX (unused right now)
 	Pin 2 - TIOA output
 	Pin 20 - PWMH0 output - PURPLE WIRE
-	*/
+	*/	
 	pio_disable_pullup(PIOA, UTXD | URXD);
 	pio_enable_output(PIOA, UTXD);
 	pio_disable_output(PIOA, URXD);
