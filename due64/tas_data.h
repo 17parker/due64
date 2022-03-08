@@ -23,7 +23,7 @@ struct area {
 
 const uint32_t boot_count = 11;						
 const instructions boot_area[boot_count] = { { 0x0,120}, { 0x8, 5 }, { 0x0, 30},{ 0x45000000, 4 }, {0x1,5}, {0x0,255}, {0x0,255}, {0x0,255}, {0x0,255}, {0x0,255},{0x0,220} };
-const char* boot_label = "boot-up";
+const char* boot_label = "bootup ";
 const area bootup = { boot_count, boot_area, boot_label };
 
 const uint32_t outside_count = 14;
@@ -42,7 +42,7 @@ const instructions BoB1_inst[BoB1_count] = { {0x1,1}, {0x0,20}, {0x2000,1}, {0x0
 /************************jump dive rollout*/ {0x7a1f0001,1}, {0x7a000000,16}, {0x7a000001,1},{0x7a000002,1},{0x7a000000,25}, {0x7a000001,1}, {0x7a000000,15},{0x7a000001,1},{0x7a000002,1},{0x7a000000,21},{0x7a000001,1},
 /**************************top of the ramp*/ {0x7a000000,15}, {0xf2b30000,3},{0xf2b30004,3},{0xf2b30001,3},{0xf2b30000,34},{0x2,1},{0x0,16}, {0x450000,4},{0x450001,5},{0x450000,14},{0x18a50001,1},{0x18a50003,1},{0x18a50001,6},
 /*******************turn to catch the bomb*/ {0x18a50000,11}, {0x0,5}, { 0xab240000, 4},{0x2,1},{0x0,25},{0x8000,1},{0x0,3}, {0x8b000000,4},{0x0,41},{0x2,1},{0x0,25},{0x4,4}, {0x1,20} };
-const char* BoB1_label = "  BoB 1";
+const char* BoB1_label = "BoB 1  ";
 const area BoB1 = { BoB1_count, BoB1_inst, BoB1_label };
 
 const uint32_t jump_count = 3;
@@ -52,23 +52,23 @@ const area jumps = { jump_count, jump_kick, jump_label };
 
 const uint32_t end_count = 2;
 const instructions end_stand[end_count] = { {0x0,15 },{0x0,15 } };
-const char* end_label = "    fin";
+const char* end_label = "fin    ";
 const area end = { end_count, end_stand,end_label };
 
 //This just loads the savestate
 const uint32_t d_up_count = 2;
 const instructions d_up_area[d_up_count] = { {0x10,3},{0x0,20} };
-const char* d_up_label = "   d_up";
+const char* d_up_label = "d_up   ";
 const area d_up = { d_up_count, d_up_area,d_up_label };
 
 const uint32_t L_R_count = 1;
 const instructions L_R_inst[L_R_count] = { {0xc00,4} };
-const char* L_R_label = "    L_R";
+const char* L_R_label = "L_R    ";
 const area L_R = { L_R_count, L_R_inst,L_R_label };
 
 const uint32_t all_count = 2;
 const instructions all_inst[all_count] = { {0x0000FFFF,1},{0,1} };
-const char* all_label = "   test";
+const char* all_label = "test   ";
 const area all = { all_count, all_inst, all_label };
 
 //const uint32_t area_count = 1;

@@ -1,38 +1,18 @@
 #pragma once
 #include "sprites.h"
 
-#define LCD_WR PIN_45C	//active HIGH
-#define LCD_RS PIN_47C	//active HIGH
-//Commands for the TFT
-volatile const uint32_t col_addr_set = 0x2A;
-volatile const uint32_t page_addr_set = 0x2B;
-volatile const uint32_t mem_write = 0x2C;
-
-volatile uint8_t frame_buffer[320][240] = { 0 };
 extern volatile uint32_t current_data;
 volatile uint8_t update_buttons_flag = 0;
 
-//Set the RS (D/CX) pin LOW to send command
-//Set the RS (D/CX) pin HIGH to send data
-inline void lcd_set_columns(uint8_t start, uint8_t end);
-inline void lcd_set_pages(uint16_t start, uint16_t end);
-inline void lcd_clear();
 inline void init_tft();
+inline void lcd_set_pages(uint16_t start, uint16_t end);
+inline void lcd_set_columns(uint8_t start, uint8_t end);
 inline void draw_frame_count_label();
-inline void draw_frame_num();
+inline void lli_start_frame_draw();
+inline void lli_update_frame_numbers();
+inline void lli_start_number_draw();
+inline void update_buttons_lli();
 
-const uint32_t num_blank = 0;
-const uint32_t num_0 = 0b00000110100110011001100110010110;
-const uint32_t num_1 = 0b00000100010001000100010001000100;
-const uint32_t num_2 = 0b00001111010000100001000100011110;
-const uint32_t num_3 = 0b00001110000100010010000100011110;
-const uint32_t num_4 = 0b00000001000100011111100110011001;
-const uint32_t num_5 = 0b00001110000100010001111010001111;
-const uint32_t num_6 = 0b00000110100110011111100010000111;
-const uint32_t num_7 = 0b00001000010000100010000100011111;
-const uint32_t num_8 = 0b00000110100110010110100110010110;
-const uint32_t num_9 = 0b00000001000100010111100110010111;
-const uint32_t num[10] = { num_0, num_1,num_2,num_3,num_4,num_5,num_6,num_7,num_8,num_9 };
 volatile const uint8_t* volatile const numbers[10] = { number_zero, number_one, number_two, number_three, number_four, number_five, number_six, number_seven, number_eight, number_nine };
 volatile uint32_t tene0;
 volatile uint32_t tene1;
@@ -331,143 +311,6 @@ inline void update_buttons_lli() {
 		lli_button_CR.saddr = (uint32_t)ublack;
 }
 
-inline void draw_frame_num() {
-	lcd_set_pages(310, 317);
-	lcd_set_columns(168, 171);
-	*command = mem_write;
-	for (uint8_t i = 0; i <= 31; ++i) {
-		*data = 0x00;
-		*data = 0x00;
-		*data = 0x00;
-	}
-	for (uint8_t i = 0; i <= 31; ++i) {
-		if ((num_buff[0] >> i) & 1) {
-			*data = 0xff;
-			*data = 0xff;
-			*data = 0xff;
-		}
-		else {
-			*data = 0x00;
-			*data = 0x00;
-			*data = 0x00;
-		}
-	}
-	lcd_set_columns(173, 176);
-	*command = mem_write;
-	for (uint8_t i = 0; i <= 31; ++i) {
-		*data = 0x00;
-		*data = 0x00;
-		*data = 0x00;
-	}
-	for (uint8_t i = 0; i <= 31; ++i) {
-		if ((num_buff[1] >> i) & 1) {
-			*data = 0xff;
-			*data = 0xff;
-			*data = 0xff;
-		}
-		else {
-			*data = 0x00;
-			*data = 0x00;
-			*data = 0x00;
-		}
-	}
-	lcd_set_columns(178, 181);
-	*command = mem_write;
-	for (uint8_t i = 0; i <= 31; ++i) {
-		*data = 0x00;
-		*data = 0x00;
-		*data = 0x00;
-	}
-	for (uint8_t i = 0; i <= 31; ++i) {
-		if ((num_buff[2] >> i) & 1) {
-			*data = 0xff;
-			*data = 0xff;
-			*data = 0xff;
-		}
-		else {
-			*data = 0x00;
-			*data = 0x00;
-			*data = 0x00;
-		}
-	}
-	lcd_set_columns(183, 186);
-	*command = mem_write;
-	for (uint8_t i = 0; i <= 31; ++i) {
-		*data = 0x00;
-		*data = 0x00;
-		*data = 0x00;
-	}
-	for (uint8_t i = 0; i <= 31; ++i) {
-		if ((num_buff[3] >> i) & 1) {
-			*data = 0xff;
-			*data = 0xff;
-			*data = 0xff;
-		}
-		else {
-			*data = 0x00;
-			*data = 0x00;
-			*data = 0x00;
-		}
-	}
-	lcd_set_columns(188, 191);
-	*command = mem_write;
-	for (uint8_t i = 0; i <= 31; ++i) {
-		*data = 0x00;
-		*data = 0x00;
-		*data = 0x00;
-	}
-	for (uint8_t i = 0; i <= 31; ++i) {
-		if ((num_buff[4] >> i) & 1) {
-			*data = 0xff;
-			*data = 0xff;
-			*data = 0xff;
-		}
-		else {
-			*data = 0x00;
-			*data = 0x00;
-			*data = 0x00;
-		}
-	}
-	lcd_set_columns(193, 196);
-	*command = mem_write;
-	for (uint8_t i = 0; i <= 31; ++i) {
-		*data = 0x00;
-		*data = 0x00;
-		*data = 0x00;
-	}
-	for (uint8_t i = 0; i <= 31; ++i) {
-		if ((num_buff[5] >> i) & 1) {
-			*data = 0xff;
-			*data = 0xff;
-			*data = 0xff;
-		}
-		else {
-			*data = 0x00;
-			*data = 0x00;
-			*data = 0x00;
-		}
-	}
-	lcd_set_columns(198, 201);
-	*command = mem_write;
-	for (uint8_t i = 0; i <= 31; ++i) {
-		*data = 0x00;
-		*data = 0x00;
-		*data = 0x00;
-	}
-	for (uint8_t i = 0; i <= 31; ++i) {
-		if ((num_buff[6] >> i) & 1) {
-			*data = 0xff;
-			*data = 0xff;
-			*data = 0xff;
-		}
-		else {
-			*data = 0x00;
-			*data = 0x00;
-			*data = 0x00;
-		}
-	}
-}
-
 inline void lcd_set_columns(uint8_t start, uint8_t end) {
 	//This sends 1 byte to specify command and 4 bytes of data (2 for start, 2 for end)
 	*command = col_addr_set;
@@ -485,7 +328,6 @@ inline void lcd_set_pages(uint16_t start, uint16_t end) {
 	*data = (end >> 8);
 	*data = end;
 }
-
 inline void lcd_clear() {
 	*command = mem_write;
 	for (uint32_t i = 0; i < 76800; ++i) {
@@ -502,7 +344,7 @@ inline void init_tft() {
 	pio_enable_output(PIOA, PIN_A4A);
 	smc_tft_lcd_setup();
 	*command = 0x01;	//software reset
-	delayMicroseconds(5000);
+	delayMicroseconds(5000);			
 	*command = 0x29;	//display on
 	delayMicroseconds(5000);
 	*command = 0x11;	//sleep out
