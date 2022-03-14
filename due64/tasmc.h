@@ -1,5 +1,5 @@
 #pragma once
-#include "sprites.h"
+#include "tas_data.h"
 
 extern volatile uint32_t current_data;
 volatile uint8_t update_buttons_flag = 0;
@@ -11,7 +11,9 @@ inline void draw_frame_count_label();
 inline void lli_start_frame_draw();
 inline void lli_update_frame_numbers();
 inline void lli_start_number_draw();
-inline void update_buttons_lli();
+inline void update_lli_buttons();
+inline void update_lli_l();
+
 
 volatile const uint8_t* volatile const numbers[10] = { number_zero, number_one, number_two, number_three, number_four, number_five, number_six, number_seven, number_eight, number_nine };
 volatile uint32_t tene0;
@@ -56,11 +58,11 @@ enum button_offsets {
 };
 
 struct lli {
-	uint32_t saddr;
-	uint32_t daddr;
-	uint32_t ctrla;
-	uint32_t ctrlb;
-	uint32_t dscr;
+	uint32_t saddr; //points to source of data
+	uint32_t daddr; //CONSTANT - points to address of destination
+	uint32_t ctrla; //CONSTANT - config
+	uint32_t ctrlb; //CONSTANT - config
+	uint32_t dscr;	//points to address of next lli
 };
 //saddr is the address where the command/data is held
 //daddr is either 0x60x for commands or 0x61x for data
@@ -89,7 +91,7 @@ volatile const uint8_t dd_cols[4] = { 0,160,0,175 };
 volatile const uint8_t a_pages[4] = { 0,108,0,123 };
 volatile const uint8_t a_cols[4] = { 0,80,0,95 };
 volatile const uint8_t z_cols[4] = { 0,116,0,131 };
-volatile const uint8_t digit_pages[4] = { 302 >> 8, 302 & 0b11111111,317 >> 8, 317 & 0b11111111 };
+volatile const uint8_t digit_pages[4] = { 302 >> 8, 302 & 0b11111111,316 >> 8, 316 & 0b11111111 };
 volatile const uint8_t digit_e0_cols[4] = { 0,146,0,153 };
 volatile const uint8_t digit_e1_cols[4] = { 0,154,0,161 };
 volatile const uint8_t digit_e2_cols[4] = { 0,162,0,169 };
@@ -97,46 +99,172 @@ volatile const uint8_t digit_e3_cols[4] = { 0,170,0,177 };
 volatile const uint8_t digit_e4_cols[4] = { 0,178,0,185 };
 volatile const uint8_t digit_e5_cols[4] = { 0,186,0,193 };
 volatile const uint8_t digit_e6_cols[4] = { 0,194,0,201 };
+volatile const uint8_t letter_pages[4] = { 0,4,0,15 };
+volatile const uint8_t l26_cols[4] = { 0,4,0,11 };
+volatile const uint8_t l25_cols[4] = { 0,13,0,20 };
+volatile const uint8_t l24_cols[4] = { 0,22,0,29 };
+volatile const uint8_t l23_cols[4] = { 0,31,0,38 };
+volatile const uint8_t l22_cols[4] = { 0,40,0,47 };
+volatile const uint8_t l21_cols[4] = { 0,49,0,56 };
+volatile const uint8_t l20_cols[4] = { 0,58,0,65 };
+volatile const uint8_t l19_cols[4] = { 0,67,0,74 };
+volatile const uint8_t l18_cols[4] = { 0,76,0,83 };
+volatile const uint8_t l17_cols[4] = { 0,85,0,92 };
+volatile const uint8_t l16_cols[4] = { 0,94,0,101 };
+volatile const uint8_t l15_cols[4] = { 0,103,0,110 };
+volatile const uint8_t l14_cols[4] = { 0,112,0,119 };
+volatile const uint8_t l13_cols[4] = { 0,121,0,128 };
+volatile const uint8_t l12_cols[4] = { 0,130,0,137 };
+volatile const uint8_t l11_cols[4] = { 0,139,0,146 };
+volatile const uint8_t l10_cols[4] = { 0,148,0,155 };
+volatile const uint8_t l9_cols[4] = { 0,157,0,164 };
+volatile const uint8_t l8_cols[4] = { 0,166,0,173 };
+volatile const uint8_t l7_cols[4] = { 0,175,0,182 };
+volatile const uint8_t l6_cols[4] = { 0,184,0,191 };
+volatile const uint8_t l5_cols[4] = { 0,193,0,200 };
+volatile const uint8_t l4_cols[4] = { 0,202,0,209 };
+volatile const uint8_t l3_cols[4] = { 0,211,0,218 };
+volatile const uint8_t l2_cols[4] = { 0,220,0,227 };
+volatile const uint8_t l1_cols[4] = { 0,229,0,236 };
 
-
-volatile lli lli_digit_e6 = { (uint32_t)number_zero,0x61000000,384,0b10 << 28,0 };
-volatile const lli lli_digit_e6_blank = { (uint32_t)number_blank,0x61000000,384,0b10 << 28,(uint32_t)&lli_digit_e6 };
-volatile const lli lli_digit_e6_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e6_blank };
+volatile lli lli_l26 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,0 };
+volatile const lli lli_l26_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l26 };
+volatile const lli lli_set_l26_cols_data = { (uint32_t)l26_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l26_mem_write };
+volatile const lli lli_l26_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l26_cols_data };
+volatile lli lli_l25 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l26_start };
+volatile const lli lli_l25_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l25 };
+volatile const lli lli_set_l25_cols_data = { (uint32_t)l25_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l25_mem_write };
+volatile const lli lli_l25_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l25_cols_data };
+volatile lli lli_l24 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l25_start };
+volatile const lli lli_l24_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l24 };
+volatile const lli lli_set_l24_cols_data = { (uint32_t)l24_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l24_mem_write };
+volatile const lli lli_l24_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l24_cols_data };
+volatile lli lli_l23 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l24_start };
+volatile const lli lli_l23_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l23 };
+volatile const lli lli_set_l23_cols_data = { (uint32_t)l23_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l23_mem_write };
+volatile const lli lli_l23_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l23_cols_data };
+volatile lli lli_l22 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l23_start };
+volatile const lli lli_l22_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l22 };
+volatile const lli lli_set_l22_cols_data = { (uint32_t)l22_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l22_mem_write };
+volatile const lli lli_l22_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l22_cols_data };
+volatile lli lli_l21 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l22_start };
+volatile const lli lli_l21_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l21 };
+volatile const lli lli_set_l21_cols_data = { (uint32_t)l21_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l21_mem_write };
+volatile const lli lli_l21_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l21_cols_data };
+volatile lli lli_l20 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l21_start };
+volatile const lli lli_l20_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l20 };
+volatile const lli lli_set_l20_cols_data = { (uint32_t)l20_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l20_mem_write };
+volatile const lli lli_l20_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l20_cols_data };
+volatile lli lli_l19 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l20_start };
+volatile const lli lli_l19_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l19 };
+volatile const lli lli_set_l19_cols_data = { (uint32_t)l19_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l19_mem_write };
+volatile const lli lli_l19_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l19_cols_data };
+volatile lli lli_l18 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l19_start };
+volatile const lli lli_l18_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l18 };
+volatile const lli lli_set_l18_cols_data = { (uint32_t)l18_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l18_mem_write };
+volatile const lli lli_l18_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l18_cols_data };
+volatile lli lli_l17 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l18_start };
+volatile const lli lli_l17_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l17 };
+volatile const lli lli_set_l17_cols_data = { (uint32_t)l17_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l17_mem_write };
+volatile const lli lli_l17_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l17_cols_data };
+volatile lli lli_l16 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l17_start };
+volatile const lli lli_l16_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l16 };
+volatile const lli lli_set_l16_cols_data = { (uint32_t)l16_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l16_mem_write };
+volatile const lli lli_l16_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l16_cols_data };
+volatile lli lli_l15 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l16_start };
+volatile const lli lli_l15_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l15 };
+volatile const lli lli_set_l15_cols_data = { (uint32_t)l15_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l15_mem_write };
+volatile const lli lli_l15_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l15_cols_data };
+volatile lli lli_l14 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l15_start };
+volatile const lli lli_l14_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l14 };
+volatile const lli lli_set_l14_cols_data = { (uint32_t)l14_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l14_mem_write };
+volatile const lli lli_l14_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l14_cols_data };
+volatile lli lli_l13 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l14_start };
+volatile const lli lli_l13_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l13 };
+volatile const lli lli_set_l13_cols_data = { (uint32_t)l13_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l13_mem_write };
+volatile const lli lli_l13_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l13_cols_data };
+volatile lli lli_l12 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l13_start };
+volatile const lli lli_l12_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l12 };
+volatile const lli lli_set_l12_cols_data = { (uint32_t)l12_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l12_mem_write };
+volatile const lli lli_l12_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l12_cols_data };
+volatile lli lli_l11 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l12_start };
+volatile const lli lli_l11_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l11 };
+volatile const lli lli_set_l11_cols_data = { (uint32_t)l11_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l11_mem_write };
+volatile const lli lli_l11_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l11_cols_data };
+volatile lli lli_l10 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l11_start };
+volatile const lli lli_l10_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l10 };
+volatile const lli lli_set_l10_cols_data = { (uint32_t)l10_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l10_mem_write };
+volatile const lli lli_l10_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l10_cols_data };
+volatile lli lli_l9 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l10_start };
+volatile const lli lli_l9_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l9 };
+volatile const lli lli_set_l9_cols_data = { (uint32_t)l9_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l9_mem_write };
+volatile const lli lli_l9_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l9_cols_data };
+volatile lli lli_l8 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l9_start };
+volatile const lli lli_l8_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l8 };
+volatile const lli lli_set_l8_cols_data = { (uint32_t)l8_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l8_mem_write };
+volatile const lli lli_l8_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l8_cols_data };
+volatile lli lli_l7 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l8_start };
+volatile const lli lli_l7_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l7 };
+volatile const lli lli_set_l7_cols_data = { (uint32_t)l7_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l7_mem_write };
+volatile const lli lli_l7_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l7_cols_data };
+volatile lli lli_l6 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l7_start };
+volatile const lli lli_l6_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l6 };
+volatile const lli lli_set_l6_cols_data = { (uint32_t)l6_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l6_mem_write };
+volatile const lli lli_l6_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l6_cols_data };
+volatile lli lli_l5 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l6_start };
+volatile const lli lli_l5_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l5 };
+volatile const lli lli_set_l5_cols_data = { (uint32_t)l5_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l5_mem_write };
+volatile const lli lli_l5_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l5_cols_data };
+volatile lli lli_l4 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l5_start };
+volatile const lli lli_l4_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l4 };
+volatile const lli lli_set_l4_cols_data = { (uint32_t)l4_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l4_mem_write };
+volatile const lli lli_l4_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l4_cols_data };
+volatile lli lli_l3 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l4_start };
+volatile const lli lli_l3_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l3 };
+volatile const lli lli_set_l3_cols_data = { (uint32_t)l3_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l3_mem_write };
+volatile const lli lli_l3_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l3_cols_data };
+volatile lli lli_l2 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l3_start };
+volatile const lli lli_l2_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l2 };
+volatile const lli lli_set_l2_cols_data = { (uint32_t)l2_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l2_mem_write };
+volatile const lli lli_l2_start = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l2_cols_data };
+volatile lli lli_l1 = { (uint32_t)l_space,0x61000000,288,0b10 << 28,(uint32_t)&lli_l2_start };
+volatile const lli lli_l1_mem_write = { (uint32_t)&mem_write,0x60000000,1,0b10 << 28,(uint32_t)&lli_l1 };
+volatile const lli lli_set_l1_cols_data = { (uint32_t)l1_cols,0x61000000,4,0b10 << 28,(uint32_t)&lli_l1_mem_write };
+volatile const lli lli_set_l1_cols_cmd = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l1_cols_data };
+volatile const lli lli_set_l_pages_data = { (uint32_t)letter_pages,0x61000000,4,0b10 << 28,(uint32_t)&lli_set_l1_cols_cmd };
+volatile const lli lli_l1_start = { (uint32_t)&page_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_l_pages_data };
+//Frame number
+volatile lli lli_digit_e6 = { (uint32_t)number_zero,0x61000000,360,0b10 << 28,0 };
+volatile const lli lli_digit_e6_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e6 };
 volatile const lli lli_set_digit_e6_cols_data = { (uint32_t)digit_e6_cols,0x61000000,4,0b10 << 28, (uint32_t)&lli_digit_e6_mem_write };
 volatile const lli lli_set_digit_e6_cols_cmd = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_digit_e6_cols_data };
-volatile lli lli_digit_e5 = { (uint32_t)number_zero,0x61000000,384,0b10 << 28,(uint32_t)&lli_set_digit_e6_cols_cmd };
-volatile const lli lli_digit_e5_blank = { (uint32_t)number_blank,0x61000000,384,0b10 << 28,(uint32_t)&lli_digit_e5 };
-volatile const lli lli_digit_e5_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e5_blank };
+volatile lli lli_digit_e5 = { (uint32_t)number_zero,0x61000000,360,0b10 << 28,(uint32_t)&lli_set_digit_e6_cols_cmd };
+volatile const lli lli_digit_e5_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e5 };
 volatile const lli lli_set_digit_e5_cols_data = { (uint32_t)digit_e5_cols,0x61000000,4,0b10 << 28, (uint32_t)&lli_digit_e5_mem_write };
 volatile const lli lli_set_digit_e5_cols_cmd = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_digit_e5_cols_data };
-volatile lli lli_digit_e4 = { (uint32_t)number_zero,0x61000000,384,0b10 << 28,(uint32_t)&lli_set_digit_e5_cols_cmd };
-volatile const lli lli_digit_e4_blank = { (uint32_t)number_blank,0x61000000,384,0b10 << 28,(uint32_t)&lli_digit_e4 };
-volatile const lli lli_digit_e4_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e4_blank };
+volatile lli lli_digit_e4 = { (uint32_t)number_zero,0x61000000,360,0b10 << 28,(uint32_t)&lli_set_digit_e5_cols_cmd };
+volatile const lli lli_digit_e4_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e4 };
 volatile const lli lli_set_digit_e4_cols_data = { (uint32_t)digit_e4_cols,0x61000000,4,0b10 << 28, (uint32_t)&lli_digit_e4_mem_write };
 volatile const lli lli_set_digit_e4_cols_cmd = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_digit_e4_cols_data };
-volatile lli lli_digit_e3 = { (uint32_t)number_zero,0x61000000,384,0b10 << 28,(uint32_t)&lli_set_digit_e4_cols_cmd };
-volatile const lli lli_digit_e3_blank = { (uint32_t)number_blank,0x61000000,384,0b10 << 28,(uint32_t)&lli_digit_e3 };
-volatile const lli lli_digit_e3_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e3_blank };
+volatile lli lli_digit_e3 = { (uint32_t)number_zero,0x61000000,360,0b10 << 28,(uint32_t)&lli_set_digit_e4_cols_cmd };
+volatile const lli lli_digit_e3_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e3 };
 volatile const lli lli_set_digit_e3_cols_data = { (uint32_t)digit_e3_cols,0x61000000,4,0b10 << 28, (uint32_t)&lli_digit_e3_mem_write };
 volatile const lli lli_set_digit_e3_cols_cmd = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_digit_e3_cols_data };
-volatile lli lli_digit_e2 = { (uint32_t)number_zero,0x61000000,384,0b10 << 28,(uint32_t)&lli_set_digit_e3_cols_cmd };
-volatile const lli lli_digit_e2_blank = { (uint32_t)number_blank,0x61000000,384,0b10 << 28,(uint32_t)&lli_digit_e2 };
-volatile const lli lli_digit_e2_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e2_blank };
+volatile lli lli_digit_e2 = { (uint32_t)number_zero,0x61000000,360,0b10 << 28,(uint32_t)&lli_set_digit_e3_cols_cmd };
+volatile const lli lli_digit_e2_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e2 };
 volatile const lli lli_set_digit_e2_cols_data = { (uint32_t)digit_e2_cols,0x61000000,4,0b10 << 28, (uint32_t)&lli_digit_e2_mem_write };
 volatile const lli lli_set_digit_e2_cols_cmd = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_digit_e2_cols_data };
-volatile lli lli_digit_e1 = { (uint32_t)number_zero,0x61000000,384,0b10 << 28,(uint32_t)&lli_set_digit_e2_cols_cmd };
-volatile const lli lli_digit_e1_blank = { (uint32_t)number_blank,0x61000000,384,0b10 << 28,(uint32_t)&lli_digit_e1 };
-volatile const lli lli_digit_e1_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e1_blank };
+volatile lli lli_digit_e1 = { (uint32_t)number_zero,0x61000000,360,0b10 << 28,(uint32_t)&lli_set_digit_e2_cols_cmd };
+volatile const lli lli_digit_e1_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e1 };
 volatile const lli lli_set_digit_e1_cols_data = { (uint32_t)digit_e1_cols,0x61000000,4,0b10 << 28, (uint32_t)&lli_digit_e1_mem_write };
 volatile const lli lli_set_digit_e1_cols_cmd = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_digit_e1_cols_data };
-volatile lli lli_digit_e0 = { (uint32_t)number_zero,0x61000000,384,0b10 << 28,(uint32_t)&lli_set_digit_e1_cols_cmd };
-volatile const lli lli_digit_e0_blank = { (uint32_t)number_blank,0x61000000,384,0b10 << 28,(uint32_t)&lli_digit_e0 };
-volatile const lli lli_digit_e0_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e0_blank };
+volatile lli lli_digit_e0 = { (uint32_t)number_zero,0x61000000,360,0b10 << 28,(uint32_t)&lli_set_digit_e1_cols_cmd };
+volatile const lli lli_digit_e0_mem_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_digit_e0 };
 volatile const lli lli_set_digit_e0_cols_data = { (uint32_t)digit_e0_cols,0x61000000,4,0b10 << 28, (uint32_t)&lli_digit_e0_mem_write };
 volatile const lli lli_set_digit_e0_cols_cmd = { (uint32_t)&col_addr_set,0x60000000,1,0b10 << 28,(uint32_t)&lli_set_digit_e0_cols_data };
 volatile const lli lli_set_digit_pages_data = { (uint32_t)digit_pages,0x61000000,4,0b10 << 28,(uint32_t)&lli_set_digit_e0_cols_cmd };
 volatile const lli lli_set_digit_page_cmd = { (uint32_t)&page_addr_set, 0x60000000,1,0b10 << 28,(uint32_t)&lli_set_digit_pages_data };
-
+//Buttons
 volatile lli lli_button_Z = { (uint32_t)button_Z, 0x61000000, 768, 0b10 << 28, (uint32_t)&lli_set_digit_page_cmd };
 volatile const lli lli_z_write = { (uint32_t)&mem_write, 0x60000000, 1, 0b10 << 28, (uint32_t)&lli_button_Z };
 volatile const lli lli_set_z_cols_data = { (uint32_t)z_cols, 0x61000000,4,0b10 << 28,(uint32_t)&lli_z_write };
@@ -252,7 +380,7 @@ inline void draw_frame_count_label() {
 	}
 }
 
-inline void update_buttons_lli() {
+inline void update_lli_buttons() {
 	if (current_data & 1)   //A
 		lli_button_A.saddr = (uint32_t)button_A;
 	else
@@ -311,6 +439,110 @@ inline void update_buttons_lli() {
 		lli_button_CR.saddr = (uint32_t)ublack;
 }
 
+inline void update_lli_l() {
+	lli_l1.saddr = *current_label++;
+	if (*current_label)
+		lli_l2.saddr = *current_label++;
+	else
+		lli_l2.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l3.saddr = *current_label++;
+	else
+		lli_l3.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l4.saddr = *current_label++;
+	else
+		lli_l4.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l5.saddr = *current_label++;
+	else
+		lli_l5.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l6.saddr = *current_label++;
+	else
+		lli_l6.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l7.saddr = *current_label++;
+	else
+		lli_l7.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l8.saddr = *current_label++;
+	else
+		lli_l8.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l9.saddr = *current_label++;
+	else
+		lli_l9.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l10.saddr = *current_label++;
+	else
+		lli_l10.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l11.saddr = *current_label++;
+	else
+		lli_l11.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l12.saddr = *current_label++;
+	else
+		lli_l12.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l13.saddr = *current_label++;
+	else
+		lli_l13.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l14.saddr = *current_label++;
+	else
+		lli_l14.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l15.saddr = *current_label++;
+	else
+		lli_l15.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l16.saddr = *current_label++;
+	else
+		lli_l16.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l17.saddr = *current_label++;
+	else
+		lli_l17.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l18.saddr = *current_label++;
+	else
+		lli_l18.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l19.saddr = *current_label++;
+	else
+		lli_l19.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l20.saddr = *current_label++;
+	else
+		lli_l20.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l21.saddr = *current_label++;
+	else
+		lli_l21.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l22.saddr = *current_label++;
+	else
+		lli_l22.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l23.saddr = *current_label++;
+	else
+		lli_l23.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l24.saddr = *current_label++;
+	else
+		lli_l24.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l25.saddr = *current_label++;
+	else
+		lli_l25.saddr = (uint32_t)l_space;
+	if (*current_label)
+		lli_l26.saddr = *current_label++;
+	else
+		lli_l26.saddr = (uint32_t)l_space;
+}
+
 inline void lcd_set_columns(uint8_t start, uint8_t end) {
 	//This sends 1 byte to specify command and 4 bytes of data (2 for start, 2 for end)
 	*command = col_addr_set;
@@ -344,7 +576,7 @@ inline void init_tft() {
 	pio_enable_output(PIOA, PIN_A4A);
 	smc_tft_lcd_setup();
 	*command = 0x01;	//software reset
-	delayMicroseconds(5000);			
+	delayMicroseconds(5000);
 	*command = 0x29;	//display on
 	delayMicroseconds(5000);
 	*command = 0x11;	//sleep out
@@ -353,3 +585,4 @@ inline void init_tft() {
 	lcd_set_pages(0, 319);
 	lcd_clear();
 }
+

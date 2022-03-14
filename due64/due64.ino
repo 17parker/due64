@@ -70,12 +70,10 @@ void setup() {
 	draw_frame_count_label();
 	init_smc_dma();
 	init_controller_buffer();
-	/*
-	REG_DMAC_EBCIER = 1;
+	REG_DMAC_EBCIDR = ~0;
 	NVIC_ClearPendingIRQ(DMAC_IRQn);
 	NVIC_SetPriority(DMAC_IRQn, 5);
 	NVIC_EnableIRQ(DMAC_IRQn);
-	*/
 	REG_PWM_ENA |= 1;
 	REG_DMAC_EN = 0b11;
 	tene0 = 0;
@@ -85,19 +83,24 @@ void setup() {
 	tene4 = 0;
 	tene5 = 0;
 	tene6 = 0;
-	lli_update_frame_numbers();
-	lli_start_number_draw();
+	lli_digit_e6.dscr = (uint32_t)&lli_l1_start;
 	load_area(current_area);
-	update_buttons_lli();
+	update_lli_l();
+	lli_update_frame_numbers();
+	update_lli_buttons();
+	lli_start_number_draw();
+	dmac_wait_for_done();
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
-	dmac_wait_for_done();
+	lli_digit_e6.dscr = 0;
 }
 
 void DMAC_Handler() {
 	volatile uint32_t dummy = REG_DMAC_EBCISR;
-	while (REG_DMAC_CHSR & 1) {}
-	//lli_start_frame_draw();
+	if (REG_DMAC_CHSR & 0b11)
+		return;
+	lli_digit_e6.dscr = 0;
+	REG_DMAC_EBCIDR = ~0;
 }
 
 void TC0_Handler() {
@@ -110,8 +113,12 @@ void TC0_Handler() {
 				load_area(current_area);
 				areas_remaining = 1;
 			}
-			else
+			else {
 				load_area(++current_area);
+				update_lli_l();
+				lli_digit_e6.dscr = (uint32_t)&lli_l1_start;
+				REG_DMAC_EBCIER = 0b11 << 8;
+			}
 		}
 		else
 			load_inst(++current_inst);
@@ -150,7 +157,7 @@ void UART_Handler() {
 
 void loop() {
 	if (update_buttons_flag) {
-		update_buttons_lli();
+		update_lli_buttons();
 		lli_start_frame_draw();
 		update_buttons_flag = 0;
 	}
