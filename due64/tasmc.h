@@ -543,46 +543,4 @@ inline void update_lli_l() {
 		lli_l26.saddr = (uint32_t)l_space;
 }
 
-inline void lcd_set_columns(uint8_t start, uint8_t end) {
-	//This sends 1 byte to specify command and 4 bytes of data (2 for start, 2 for end)
-	*command = col_addr_set;
-	*data = 0x00;
-	*data = start;
-	*data = 0x00;
-	*data = end;
-}
-
-//The values for pages goes from 0-319, and anything over 255 is over 1 byte, so this needs 2 bytes
-inline void lcd_set_pages(uint16_t start, uint16_t end) {
-	*command = page_addr_set;
-	*data = (start >> 8);
-	*data = start;
-	*data = (end >> 8);
-	*data = end;
-}
-inline void lcd_clear() {
-	*command = mem_write;
-	for (uint32_t i = 0; i < 76800; ++i) {
-		*data = 0x00;
-		*data = 0x00;
-		*data = 0x00;
-	}
-}
-
-inline void init_tft() {
-	pio_disable_pullup(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_45C | PIN_47C);
-	pio_enable_output(PIOC, PIN_34C | PIN_35C | PIN_36C | PIN_37C | PIN_38C | PIN_39C | PIN_40C | PIN_41C | PIN_45C | PIN_47C);
-	pio_disable_pullup(PIOA, PIN_A4A);
-	pio_enable_output(PIOA, PIN_A4A);
-	smc_tft_lcd_setup();
-	*command = 0x01;	//software reset
-	delayMicroseconds(5000);
-	*command = 0x29;	//display on
-	delayMicroseconds(5000);
-	*command = 0x11;	//sleep out
-	delayMicroseconds(5000);
-	lcd_set_columns(0, 239);
-	lcd_set_pages(0, 319);
-	lcd_clear();
-}
 

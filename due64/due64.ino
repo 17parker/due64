@@ -39,6 +39,15 @@ void setup() {
 	pmc_enable_periph_clk(ID_TC0);
 	pmc_enable_periph_clk(ID_SMC);
 	pmc_enable_periph_clk(ID_DMAC);
+	pmc_enable_periph_clk(ID_SPI0);
+
+	delayMicros(50000); //Let things stabilize - 50ms
+
+	//****8x8 LED MATRIX****//
+	led_matrix_spi0_init(8, 1);
+	led_matrix_spi0_dma_init();
+	led_matrix_start_dma();
+	led_matrix_wait_dmac();
 
 	REG_TC0_CMR0 = 1 | (1 << 6) | (1 << 14) | (1 << 15) | (1 << 16) | (0b11 << 18);	//Using TIOA on TC0
 	REG_TC0_RC0 = 21;
@@ -60,9 +69,7 @@ void setup() {
 	REG_UART_IDR = ~0;
 	REG_UART_IER = (1 << 3);
 	REG_UART_PTCR = 1;
-	NVIC_ClearPendingIRQ(UART_IRQn);
 	NVIC_SetPriority(UART_IRQn, 0);
-	NVIC_EnableIRQ(UART_IRQn);
 	uart_enable_rx();
 
 	//******TFT DISPLAY
@@ -75,7 +82,7 @@ void setup() {
 	NVIC_SetPriority(DMAC_IRQn, 5);
 	NVIC_EnableIRQ(DMAC_IRQn);
 	REG_PWM_ENA |= 1;
-	REG_DMAC_EN = 0b11;
+	REG_DMAC_EN = 1;
 	tene0 = 0;
 	tene1 = 0;
 	tene2 = 0;
@@ -90,8 +97,13 @@ void setup() {
 	update_lli_buttons();
 	lli_start_number_draw();
 	dmac_wait_for_done();
+
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
+	delayMicros(10000);
+	volatile uint32_t dummy = REG_UART_RHR;
+	NVIC_ClearPendingIRQ(UART_IRQn);
+	NVIC_EnableIRQ(UART_IRQn);
 	lli_digit_e6.dscr = 0;
 }
 
@@ -132,6 +144,8 @@ void UART_Handler() {
 	REG_PWM_TCR = buffer_size;
 	REG_TC0_RC0 = buffer_delay;
 	REG_TC0_CCR0 = (1 << 2);
+	scroll_dot();
+	led_matrix_start_dma();
 	if (++tene0 == 10) {
 		tene0 = 0;
 		if (++tene1 == 10) {

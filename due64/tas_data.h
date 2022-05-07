@@ -49,16 +49,19 @@ const area outside = { outside_count, outside_area, outside_label };
 const uint32_t to_BoB1_count = 22;
 const instructions inside_area[to_BoB1_count] = { {0x0, 100}, {0x02,1}, {0x0, 45}, {0x8b4a0000, 28},{0x8a0c0000, 8},{0x8a0c0002, 1}, {0x8a0c0000,10}, {0x8a0c0001, 1},{0x1a440000, 26},{0x146a0002, 1},{0xd4280000, 10} ,{0x6a640001, 1}, {0xc2bd0000, 67},
 /******************************In the door*/      {0x7a000000,4}, {0x7a000004, 1},{0x7a000005, 1},{0x7aaf0000, 10}, {0x7aaf0000, 22}, { 0x7aaf0004,1},{0x7aaf0005,1}, {0x7aaf0001, 30}, {0x0,85} };
-const char* inside_label = "To BoB1";
-//const area to_BoB1 = { to_BoB1_count, inside_area, inside_label };
+const uint32_t to_BoB1_label[] = { (uint32_t)l_G,(uint32_t)l_O,(uint32_t)l_I,(uint32_t)l_N,(uint32_t)l_G,(uint32_t)l_space,
+									(uint32_t)l_T,(uint32_t)l_O,(uint32_t)l_space,(uint32_t)l_B,(uint32_t)l_O,(uint32_t)l_B,0 };
+const area to_BoB1 = { to_BoB1_count, inside_area, to_BoB1_label };
 
 const uint32_t BoB1_count = 56;	//****Starts at the A press to select the star					This pause is long because of a stupid fucking goomba ->{0x0,190}<-
 const instructions BoB1_inst[BoB1_count] = { {0x1,1}, {0x0,20}, {0x2000,1}, {0x0, 5}, {0x4000,1},  {0x0,60},{0x2,1},{0x0,15},{0x2,1},{0x0,15}, {0x2,1}, {0x0,190}, { 0x7a1f0000, 6 }, { 0x7a1f0004,1 }, { 0x7a1f0005,1 }, { 0x7a1f0000, 35 }, { 0x7a1f0001,1 }, { 0x7a1f0002,1 }, { 0x7a1f0000, 26 },
 /************************jump dive rollout*/ {0x7a1f0001,1}, {0x7a000000,16}, {0x7a000001,1},{0x7a000002,1},{0x7a000000,25}, {0x7a000001,1}, {0x7a000000,15},{0x7a000001,1},{0x7a000002,1},{0x7a000000,21},{0x7a000001,1},
 /**************************top of the ramp*/ {0x7a000000,15}, {0xf2b30000,3},{0xf2b30004,3},{0xf2b30001,3},{0xf2b30000,34},{0x2,1},{0x0,16}, {0x450000,4},{0x450001,5},{0x450000,14},{0x18a50001,1},{0x18a50003,1},{0x18a50001,6},
 /*******************turn to catch the bomb*/ {0x18a50000,11}, {0x0,5}, { 0xab240000, 4},{0x2,1},{0x0,25},{0x8000,1},{0x0,3}, {0x8b000000,4},{0x0,41},{0x2,1},{0x0,25},{0x4,4}, {0x1,20} };
-const char* BoB1_label = "BoB 1  ";
-//const area BoB1 = { BoB1_count, BoB1_inst, BoB1_label };
+const uint32_t BoB1_label[] = {(uint32_t)l_B,(uint32_t)l_E,(uint32_t)l_H,(uint32_t)l_I,(uint32_t)l_N,(uint32_t)l_D,(uint32_t)l_space,
+								(uint32_t)l_C,(uint32_t)l_H,(uint32_t)l_A,(uint32_t)l_I,(uint32_t)l_N,(uint32_t)l_space,(uint32_t)l_C,(uint32_t)l_H,(uint32_t)l_O,(uint32_t)l_M,(uint32_t)l_P,(uint32_t)l_S,
+								(uint32_t)l_space,(uint32_t)l_G,(uint32_t)l_A,(uint32_t)l_T,(uint32_t)l_E,0 };
+const area BoB1 = { BoB1_count, BoB1_inst, BoB1_label };
 
 const uint32_t jump_count = 3;
 const instructions jump_kick[jump_count] = { { 0x1, 2}, {0x4, 45}, {0x0, 45} };
@@ -81,20 +84,17 @@ const instructions L_R_inst[L_R_count] = { {0xc00,4} };
 const char* L_R_label = "L_R    ";
 //const area L_R = { L_R_count, L_R_inst,L_R_label };
 
-const uint32_t all_count = 2;
-const instructions all_inst[all_count] = { {0x0000FFFF,1},{0,1} };
-const uint32_t all_label[] = { (uint32_t)l_T,(uint32_t)l_E,(uint32_t)l_S,(uint32_t)l_T,0 };
-const area all = { all_count, all_inst, all_label };
-
 const uint32_t crap_count = 2;
 const instructions crap_inst[crap_count] = { {0xFFFFFFFF,1},{0,1} };
-const uint32_t crap_label[] = { (uint32_t)l_D,(uint32_t)l_E,(uint32_t)l_D,(uint32_t)l_E,(uint32_t)l_D,(uint32_t)l_E,0 };
+const uint32_t crap_label[] = { (uint32_t)l_A,(uint32_t)l_L,(uint32_t)l_L,(uint32_t)l_space,(uint32_t)l_D,(uint32_t)l_O,(uint32_t)l_N,(uint32_t)l_E,
+								(uint32_t)l_hyphen,(uint32_t)l_S,(uint32_t)l_E,(uint32_t)l_I,(uint32_t)l_Z,(uint32_t)l_U,(uint32_t)l_R,(uint32_t)l_E,
+								(uint32_t)l_space, (uint32_t)l_T, (uint32_t)l_I,(uint32_t)l_M, (uint32_t)l_E, 0 };
 const area crap = { crap_count, crap_inst, crap_label };
 
 //const uint32_t area_count = 2;
 //const area areas[area_count] = { crap, all };
-const uint32_t area_count = 5;
-const area areas[area_count] = { bootup, file_sel,pp_speech, outside,crap };
+const uint32_t area_count = 7;
+const area areas[area_count] = { bootup, file_sel,pp_speech, outside,to_BoB1,BoB1, crap };
 
 
 const area* volatile current_area = areas;
