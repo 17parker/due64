@@ -14,7 +14,6 @@ inline void lli_start_number_draw();
 inline void update_lli_buttons();
 inline void update_lli_l();
 
-
 volatile const uint8_t* volatile const numbers[10] = { number_zero, number_one, number_two, number_three, number_four, number_five, number_six, number_seven, number_eight, number_nine };
 volatile uint32_t tene0;
 volatile uint32_t tene1;

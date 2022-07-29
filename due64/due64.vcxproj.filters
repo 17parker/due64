@@ -14,25 +14,28 @@
       <Extensions>xml;json;txt;rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="src">
-      <UniqueIdentifier>{2e12aec3-53cb-44a1-bd75-d54709e37b56}</UniqueIdentifier>
+      <UniqueIdentifier>{b14b3610-d1fb-42a9-a009-d78b2068b875}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\_micro-api-readonly">
-      <UniqueIdentifier>{1d017962-89f2-45c5-9808-31a6a1c31f3b}</UniqueIdentifier>
+      <UniqueIdentifier>{17cde69b-b52a-4383-a8a4-e88faa486d88}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\_micro-api-readonly\core">
-      <UniqueIdentifier>{5a99064c-fd26-405d-a1a6-6751d8b04a82}</UniqueIdentifier>
+      <UniqueIdentifier>{10d91d0d-16ac-4f5d-b6e1-aa93b0b3edec}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\_micro-api-readonly\core\avr">
-      <UniqueIdentifier>{5200dc5d-6bfa-49d4-a6b7-f492438c170b}</UniqueIdentifier>
+      <UniqueIdentifier>{19811ebf-5673-4e04-8ae7-b1705f9ce071}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\_micro-api-readonly\core\USB">
-      <UniqueIdentifier>{b98687a3-85b1-4737-a84c-5b78e1bca682}</UniqueIdentifier>
+      <UniqueIdentifier>{3c73ae09-9fd6-4a27-b806-268a9f6fb98f}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\_micro-api-readonly\libraries">
-      <UniqueIdentifier>{388ad500-9b72-40ee-a10b-1e761d8cbc71}</UniqueIdentifier>
+      <UniqueIdentifier>{2e70ae36-7ac4-4abf-a1cc-fdffe6de1bca}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\_micro-api-readonly\libraries\SAM3XDUE">
-      <UniqueIdentifier>{1a80ea95-4a3d-4a5e-91f1-158475f7acc1}</UniqueIdentifier>
+      <UniqueIdentifier>{3edc7580-ff51-45a9-8174-b3aa515abc10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\_micro-api-readonly\libraries\sprites">
+      <UniqueIdentifier>{f1acb592-ca78-4ec9-86ce-18166d150acd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -162,38 +165,41 @@
     <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x\variant.h">
       <Filter>src\_micro-api-readonly\core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3a4c.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\sam3a4c.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3a8c.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\sam3a8c.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3x4c.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\sam3x4c.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3x4e.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\sam3x4e.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3x8c.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\sam3x8c.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3x8e.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\sam3x8e.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3x8h.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\sam3x8h.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3xa.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\sam3xa.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE.H">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\SAM3XDUE.H">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE_timers.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\SAM3XDUE_timers.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\system_sam3xa.h">
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\system_sam3xa.h">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\sprites\sprites.h">
+      <Filter>src\_micro-api-readonly\libraries\sprites</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -281,10 +287,7 @@
     <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x\variant.cpp">
       <Filter>src\_micro-api-readonly\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE.cpp">
-      <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE_timers.cpp">
+    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE\SAM3XDUE_timers.cpp">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClCompile>
   </ItemGroup>

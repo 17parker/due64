@@ -3,10 +3,62 @@
 controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
 In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 */
-
 #include "SAM3XDUE.h"
-#include "tas_data.h"
-#include "tasmc.h"
+
+inline void init_player_buffers();
+inline void p1_read_buttons();
+inline void p2_read_buttons();
+inline void p1_init_buttons();
+inline void p2_init_buttons();
+
+const uint32_t one = 7;
+const uint32_t zro = 21;
+const uint32_t stop = 14;
+const uint32_t off = 0;
+const uint32_t b[2] = { zro, one };
+
+enum button_offsets {
+	A = 2,
+	B,
+	Z,
+	START,
+	DU,
+	DD,
+	DL,
+	DR,
+	RST,
+	UNUSED,
+	L,
+	R,
+	CU,
+	CD,
+	CL,
+	CR,
+	X = 18,
+	Y = 26
+};
+
+volatile uint16_t p1_buffer[36];
+volatile uint16_t p2_buffer[36];
+const uint32_t buffer_size = 36;
+const uint32_t buffer_delay = 1520;
+
+volatile uint32_t p1_button_read = 0;
+
+inline void init_player_buffers() {
+	p1_buffer[0] = off;
+	p1_buffer[1] = off;
+	p1_buffer[34] = stop;
+	p1_buffer[35] = off;
+	p2_buffer[0] = off;
+	p2_buffer[1] = off;
+	p2_buffer[34] = stop;
+	p2_buffer[35] = off;
+	for (uint32_t i = 2; i < 34; ++i) {
+		p1_buffer[i] = zro;
+		p2_buffer[i] = zro;
+	}
+}
 
 const uint16_t status_response[28] = { off, off, b[0], b[0], b[0], b[0], b[0], b[1], b[0], b[1],	//0x05
 								 b[0], b[0], b[0], b[0], b[0], b[0], b[0], b[0],	//0x00
@@ -18,7 +70,37 @@ const uint32_t status_delay = 1350;
 volatile uint8_t rx_read[8];
 const uint16_t rx_count = 8;
 
+/*PINS USED
+	PIOA:
+		PA8 - URXD - RX console command
+		PA9 - UTXD (unused at the moment)
+
+	PIOB:
+		PB25 - TIOA output - starts on PWM TX, URXD is disabled so it does not "receive" PWM output
+						   - this can be disabled, used for oscilloscope syncing
+		PB12 - PWMH0 output - send data to console
+
+	PIOC:
+		PC10-PC17, PC22-PC28
+
+*/
+
+
+
 void setup() {
+	Serial.begin(115200);
+	//I'm just going to leave the periph clocks enabled
+	pmc_enable_periph_clk(ID_PWM);
+	pmc_enable_periph_clk(ID_UART);
+	pmc_enable_periph_clk(ID_TC0);
+	pmc_enable_periph_clk(ID_SMC);
+	pmc_enable_periph_clk(ID_DMAC);
+	pmc_enable_periph_clk(ID_SPI0);
+	pmc_enable_periph_clk(ID_PIOC);
+
+	init_player_buffers();
+	p1_init_buttons();
+
 	/*Pins for interfacing with the N64
 	Pin 0 - UART RX - BROWN WIRE
 	Pin 1 - UART TX (unused right now)
@@ -34,20 +116,8 @@ void setup() {
 	pio_enable_output(PIOB, PIN_2B | PIN_20B);
 	pio_disable_pio(PIOB, PIN_2B | PIN_20B);
 	pio_set_periph_mode_B(PIOB, PIN_2B | PIN_20B);
-	pmc_enable_periph_clk(ID_PWM);
-	pmc_enable_periph_clk(ID_UART);
-	pmc_enable_periph_clk(ID_TC0);
-	pmc_enable_periph_clk(ID_SMC);
-	pmc_enable_periph_clk(ID_DMAC);
-	pmc_enable_periph_clk(ID_SPI0);
 
-	delayMicros(50000); //Let things stabilize - 50ms
-
-	//****8x8 LED MATRIX****//
-	led_matrix_spi0_init(8, 1);
-	led_matrix_spi0_dma_init();
-	led_matrix_start_dma();
-	led_matrix_wait_dmac();
+	delayMicros(500000); //Let things stabilize - 500ms
 
 	REG_TC0_CMR0 = 1 | (1 << 6) | (1 << 14) | (1 << 15) | (1 << 16) | (0b11 << 18);	//Using TIOA on TC0
 	REG_TC0_RC0 = 21;
@@ -72,46 +142,23 @@ void setup() {
 	NVIC_SetPriority(UART_IRQn, 0);
 	uart_enable_rx();
 
-	//******TFT DISPLAY
-	init_tft();
-	draw_frame_count_label();
-	init_smc_dma();
-	init_controller_buffer();
-	REG_DMAC_EBCIDR = ~0;
-	NVIC_ClearPendingIRQ(DMAC_IRQn);
-	NVIC_SetPriority(DMAC_IRQn, 5);
-	NVIC_EnableIRQ(DMAC_IRQn);
-	REG_PWM_ENA |= 1;
-	REG_DMAC_EN = 1;
-	tene0 = 0;
-	tene1 = 0;
-	tene2 = 0;
-	tene3 = 0;
-	tene4 = 0;
-	tene5 = 0;
-	tene6 = 0;
-	lli_digit_e6.dscr = (uint32_t)&lli_l1_start;
-	load_area(current_area);
-	update_lli_l();
-	lli_update_frame_numbers();
-	update_lli_buttons();
-	lli_start_number_draw();
-	dmac_wait_for_done();
-
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_count;
 	delayMicros(10000);
 	volatile uint32_t dummy = REG_UART_RHR;
 	NVIC_ClearPendingIRQ(UART_IRQn);
 	NVIC_EnableIRQ(UART_IRQn);
-	lli_digit_e6.dscr = 0;
+
+	REG_PWM_TPR = (uint32_t)p1_buffer;
+	REG_PWM_TCR = buffer_size;
 }
+
 
 void DMAC_Handler() {
 	volatile uint32_t dummy = REG_DMAC_EBCISR;
 	if (REG_DMAC_CHSR & 0b11)
 		return;
-	lli_digit_e6.dscr = 0;
+
 	REG_DMAC_EBCIDR = ~0;
 }
 
@@ -119,60 +166,82 @@ void TC0_Handler() {
 	volatile uint32_t dummy = REG_TC0_SR0;
 	REG_UART_RPR = (uint32_t)rx_read;	//set UART DMA
 	REG_UART_RCR = rx_count;
-	if (!--cycles_remaining) {
-		if (!--inst_remaining) {
-			if (!--areas_remaining) {
-				load_area(current_area);
-				areas_remaining = 1;
-			}
-			else {
-				load_area(++current_area);
-				update_lli_l();
-				lli_digit_e6.dscr = (uint32_t)&lli_l1_start;
-				REG_DMAC_EBCIER = 0b11 << 8;
-			}
-		}
-		else
-			load_inst(++current_inst);
-	}
 	REG_UART_IER = (1 << 3);
+	p1_read_buttons();
 }
 
 void UART_Handler() {
 	REG_UART_IDR = ~0;
-	REG_PWM_TPR = (uint32_t)buffer;
+	REG_PWM_TPR = (uint32_t)p1_buffer;
 	REG_PWM_TCR = buffer_size;
 	REG_TC0_RC0 = buffer_delay;
 	REG_TC0_CCR0 = (1 << 2);
-	scroll_dot();
-	led_matrix_start_dma();
-	if (++tene0 == 10) {
-		tene0 = 0;
-		if (++tene1 == 10) {
-			tene1 = 0;
-			if (++tene2 == 10) {
-				tene2 = 0;
-				if (++tene3 == 10) {
-					tene3 = 0;
-					if (++tene4 == 10) {
-						tene4 = 0;
-						if (++tene5 == 10) {
-							tene5 = 0;
-							++tene6;
-						}
-					}
-				}
-			}
-		}
-	}
-	update_buttons_flag = 1;
-	lli_update_frame_numbers();
 }
 
 void loop() {
-	if (update_buttons_flag) {
-		update_lli_buttons();
-		lli_start_frame_draw();
-		update_buttons_flag = 0;
-	}
+
+}
+
+
+inline void p1_read_buttons() {
+	uint32_t pins = REG_PIOC_PDSR;
+	/*
+	These pins are pulled up, so they're low when they're pressed
+	PC10 - A
+	PC11 - B
+	PC12 - CU
+	PC13 - CD
+	PC14 - CL
+	PC15 - CR
+	PC16 - DU
+	PC17 - DD
+	PC22 - DL
+	PC23 - DR
+	PC24 - START
+	PC25 - L
+	PC26 - R
+	PC27 - Z
+*/
+	if ((pins >> 10) & 1)
+		p1_buffer[A] = zro;
+	else
+		p1_buffer[A] = one;
+	if ((pins >> 11) & 1)
+		p1_buffer[B] = zro;
+	else
+		p1_buffer[B] = one;
+
+
+}
+
+
+inline void p2_read_buttons() {
+
+}
+
+
+inline void p1_init_buttons() {
+	/*
+		PC10 - A
+		PC11 - B
+		PC12 - CU
+		PC13 - CD
+		PC14 - CL
+		PC15 - CR
+		PC16 - DU
+		PC17 - DD
+		PC22 - DL
+		PC23 - DR
+		PC24 - START
+		PC25 - L
+		PC26 - R
+		PC27 - Z
+	*/
+	pio_enable_pio(PIOC, 0xFC3FC00); //trust me with this hex number
+	pio_disable_output(PIOC, 0xFC3FC00);
+	pio_enable_pullup(PIOC, 0xFC3FC00);
+}
+
+inline void p2_init_buttons() {
+
 }
