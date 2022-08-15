@@ -1,4 +1,3 @@
-//I know you're not good at it, but please look at the commit notes to see where you left off
 /*
 controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
 In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
