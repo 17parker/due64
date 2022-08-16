@@ -19,7 +19,7 @@ The lower 16 bits of the sent data correspond to buttons. "1" means the button i
 
 # Storing instructions
 
-Controller data needs to be sent every time a new frame is displayed (30 times per second), so storing instructions for individual frames will take up a lot of space. Instead, instructions are stored as: {[buttons/stick data], [number of frames to repeat]}. Creating these instructions by hand is horribly tedious and time consuming (the signed bytes are sent LSB first, so after doing the trig to calculate X and Y given an angle, it needs to be reversed), so a helper program is used to create the instructions.
+Controller data needs to be sent every time a new frame is displayed (30 times per second), so storing instructions for individual frames will take up a lot of space. Instead, instructions are stored as: {[buttons/stick data], [number of frames to repeat]}. Creating these instructions by hand is horribly tedious and time consuming (the signed bytes are sent LSB first, so after doing the trig to calculate X and Y given an angle, it needs to be reversed), so a helper program is used to create the instructions (https://github.com/17parker/due64_instruction_maker/).
 
 # Other
 The microcontroller displays what buttons are being "pressed," as well as how many instructions it has sent in total, on a screen. Commands and data are sent to the display controller (ILI9341) using direct memory access (DMA). This requires either an array or linked list, with a few *hundred* items. I opted for linked list, because large arrays really bog down Visual Studio.
