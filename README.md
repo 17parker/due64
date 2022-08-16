@@ -29,3 +29,6 @@ A dot on an 8x8 LED dot matrix is moved after every instruction sent. The matrix
 Sending and receiving data is all managed by the DMA controller and interrupts, so the MCU is well under 1% utilized
 
 The instructions currently programmed in collect a "power star" in the game "Super Mario 64". Upon powering the console up, the MCU navigates the menu, starts a new game, and navigates through the level.
+
+# To do
+Connect the microcontroller to wi-fi, and give someone the ability to send controls via the internet
