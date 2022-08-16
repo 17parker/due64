@@ -10,7 +10,7 @@ The protocol is similar to UART, but there are no start/stop bits between bytes.
 Receiving one byte from the console using UART is impossible because it lacks a stop bit. However, setting the receiver's baud rate high enough so that it samples one whole byte per console's bit does work. Determining if the console sent a 1 or a 0 is done by reading one of the bits in the middle of the received byte. At the moment, it only responds to one command correctly: the "poll" command (I do not have a game that uses any other command).
 
 # TX
-Transmitting is done via PWM with a 250kHz frequency, and it mimics the protocol by varying the duty cycle at the end of each period (the protocol resembles UART). The duty cycles are stored in an array of bytes, so sending a "1" or a "0" is a matter of changing its corresponding value in the array of duty cycles. Instead of turning the PWM off, the duty cycle is set to 0.
+Transmitting is done via PWM with a 250kHz frequency, and it mimics the protocol by varying the duty cycle at the end of each period (the protocol resembles UART). It is triggered by the "UART - data received" interrupt. The duty cycles are stored in an array of bytes, so sending a "1" or a "0" is a matter of changing its corresponding value in the array of duty cycles. Instead of turning the PWM off, the duty cycle is set to 0.
 
 # Sending controller data (4 bytes)
 
@@ -25,5 +25,7 @@ Controller data needs to be sent every time a new frame is displayed (30 times p
 The microcontroller displays what buttons are being "pressed," as well as how many instructions it has sent in total, on a screen. Commands and data are sent to the display controller (ILI9341) using direct memory access (DMA). This requires either an array or linked list, with a few *hundred* items. I opted for linked list, because large arrays really bog down Visual Studio.
 
 A dot on an 8x8 LED dot matrix is moved after every instruction sent. The matrix display's controller uses SPI, and this was only included to demonstrate SPI with DMA.
+
+Sending and receiving data is all managed by the DMA controller, so the MCU is well under 1% utilized
 
 The instructions currently programmed in collect a "power star" in the game "Super Mario 64". Upon powering the console up, the MCU navigates the menu, starts a new game, and navigates through the level.
