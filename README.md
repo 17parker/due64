@@ -26,6 +26,6 @@ The microcontroller displays what buttons are being "pressed," as well as how ma
 
 A dot on an 8x8 LED dot matrix is moved after every instruction sent. The matrix display's controller uses SPI, and this was only included to demonstrate SPI with DMA.
 
-Sending and receiving data is all managed by the DMA controller, so the MCU is well under 1% utilized
+Sending and receiving data is all managed by the DMA controller and interrupts, so the MCU is well under 1% utilized
 
 The instructions currently programmed in collect a "power star" in the game "Super Mario 64". Upon powering the console up, the MCU navigates the menu, starts a new game, and navigates through the level.
