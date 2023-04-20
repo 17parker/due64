@@ -36,7 +36,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="due64.ino" />
     <None Include="src\arduino folders read me.txt">
       <Filter>Misc Files</Filter>
     </None>
@@ -287,5 +286,6 @@
     <ClCompile Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE_timers.cpp">
       <Filter>src\_micro-api-readonly\libraries\SAM3XDUE</Filter>
     </ClCompile>
+    <ClCompile Include="due64.ino" />
   </ItemGroup>
 </Project>

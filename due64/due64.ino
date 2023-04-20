@@ -19,6 +19,20 @@ volatile uint8_t rx_read[8];
 const uint16_t rx_count = 8;
 
 void setup() {
+	/*TESTING
+	try to find a way to get rid of the delay between packets when DMA-ing
+	I think the CPU and the DMAC might be bumping into each other during SRAM accesses
+	Master 4 - DMAC
+	Slave 0-1 - SRAM 0-1
+	Slave 6 - External Bus Interface
+	https://stackoverflow.com/questions/4067811/how-to-place-a-variable-at-a-given-absolute-address-in-memory-with-gcc
+	*/
+	MATRIX->MATRIX_MCFG[4] = 0; //allow infinite length bursts from dmac
+	MATRIX->MATRIX_SCFG[6] = 255 | (1 << 16);	//Long slot cycle and last default master
+	MATRIX->MATRIX_PRAS6 = 0b11 << 16; //EBI gives DMAC highest priority
+	uint32_t* test = (uint32_t*)0x20000000;
+	*test = 50;
+
 	/*Pins for interfacing with the N64
 	Pin 0 - UART RX - BROWN WIRE
 	Pin 1 - UART TX (unused right now)
@@ -73,6 +87,7 @@ void setup() {
 	uart_enable_rx();
 
 	//******TFT DISPLAY
+	//NOTE: IF IT DOESN'T WORK, CHANGE SMC_SETUP and SMC_CYCLE TIMINGS IN SAM3XDUE.h
 	init_tft();
 	draw_frame_count_label();
 	init_smc_dma();
@@ -81,6 +96,8 @@ void setup() {
 	NVIC_ClearPendingIRQ(DMAC_IRQn);
 	NVIC_SetPriority(DMAC_IRQn, 5);
 	NVIC_EnableIRQ(DMAC_IRQn);
+	REG_DMAC_CFG0 = 0b10 << 28;
+	REG_DMAC_CFG1 = 0b10 << 28;
 	REG_PWM_ENA |= 1;
 	REG_DMAC_EN = 1;
 	tene0 = 0;
