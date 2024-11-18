@@ -36,27 +36,6 @@ const uint32_t frame_line7 = 0b10000010010010001010001010000011;
 const uint32_t frame_line8 = 0b10000010001010001010001011111000;
 const uint32_t f[8] = { frame_line1,frame_line2,frame_line3,frame_line4,frame_line5,frame_line6,frame_line7,frame_line8 };
 
-enum button_offsets {
-	A,
-	B,
-	Z,
-	START,
-	DU,
-	DD,
-	DL,
-	DR,
-	RST,
-	UNUSED,
-	L,
-	R,
-	CU,
-	CD,
-	CL,
-	CR,
-	X = 16,
-	Y = 24
-};
-
 struct lli {
 	uint32_t saddr; //points to source of data
 	uint32_t daddr; //CONSTANT - points to address of destination

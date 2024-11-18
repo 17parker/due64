@@ -1,6 +1,34 @@
 #pragma once
 #include "sprites.h"
 
+enum button_offsets {
+	A,
+	B,
+	Z,
+	START,
+	DU,
+	DD,
+	DL,
+	DR,
+	RST,
+	UNUSED,
+	L,
+	R,
+	CU,
+	CD,
+	CL,
+	CR,
+	X = 16,
+	Y = 24
+};
+
+
+/*
+	The PWM duty cycle is modified to simulate the UART-like protocol the controller uses
+	A "zero" is sent with a longer duty cycle (~75% OFF or HIGH, ~25% LOW)
+	A "one" is the inverse of a zero
+	OFF is sent when the packet is over to "stop" the PWM without disabling it
+*/
 const uint32_t one = 7;
 const uint32_t zro = 21;
 const uint32_t stop = 14;
