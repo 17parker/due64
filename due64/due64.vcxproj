@@ -1,33 +1,40 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
+    <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
+      <Platform>ARM</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
+    <ProjectConfiguration Include="Release|ARM">
       <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
     <RootNamespace>due64</RootNamespace>
     <ProjectName>due64</ProjectName>
+    <Keyword>Linux</Keyword>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <ApplicationType>Linux</ApplicationType>
+    <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
+    <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
+    <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -54,52 +61,60 @@
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
+  <ImportGroup Label="PropertySheets" />
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <PropertyGroup Label="UserMacros">
+    <LinuxIncludePath>c:\visualmicro\ignore</LinuxIncludePath>
+    <wiringPiIncludePath>c:\visualmicro\pi-ignore</wiringPiIncludePath>
+    <TargetOSAndVersion>Arduino</TargetOSAndVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <RemoteCCompileToolExe>g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>g++</RemoteCppCompileToolExe>
+    <ValidateArchitecture>false</ValidateArchitecture>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <RemoteCCompileToolExe>$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\bin\arm-none-eabi-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\bin\arm-none-eabi-g++</RemoteCppCompileToolExe>
+    <ValidateArchitecture>false</ValidateArchitecture>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <IncludePath>$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SAM3XDUE;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\sprites;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\utility;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\sprites\utility;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\system\libsam;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\system\CMSIS\CMSIS\Include;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\system\CMSIS\Device\ATMEL;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\cores\\arduino;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\variants\\arduino_due_x;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3\arm-none-eabi\armv7-m;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3\backward;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\lib\gcc\arm-none-eabi\4.8.3\include;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\lib\gcc\arm-none-eabi\4.8.3\include-fixed;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SAM3XDUE</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\due64;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SAM3XDUE;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3\arm-none-eabi\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\lib\gcc\arm-none-eabi\4.8.3\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\g++_arm_none_eabi\arm-none-eabi\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\g++_arm_none_eabi\arm_none_eabi\include\;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include\pio;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\clearcore\Third Party\SAME53\CMSIS\Device\Include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\Teknic\libClearCore\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>$(ProjectDir)__vm\.due64.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SAM3XDUE;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\sprites;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\utility;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\sprites\utility;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\system\libsam;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\system\CMSIS\CMSIS\Include;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\system\CMSIS\Device\ATMEL;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\cores\\arduino;$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\variants\\arduino_due_x;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3\arm-none-eabi\armv7-m;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3\backward;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\lib\gcc\arm-none-eabi\4.8.3\include;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\lib\gcc\arm-none-eabi\4.8.3\include-fixed;$(ProjectDir)..\..\..\..\appdata\local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SAM3XDUE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)..\..\..\..\..\..\program files\microsoft visual studio\2022\community\common7\ide\extensions\z0o5xb5o.0fx\Micro Platforms\default\vm-intelli-pre.h;$(ProjectDir)..\..\..\..\AppData\Local\Temp\VMBuilds\due64\arduino_due_x_dbg\Debug\.vmintelli\1226fa0935b6ca579c97b56f05ef6cf9\vm-intelli-gcc-defines.h;$(ProjectDir)..\..\..\..\..\..\program files\microsoft visual studio\2022\community\common7\ide\extensions\z0o5xb5o.0fx\Micro Platforms\default\vm-intelli-post.h;$(ProjectDir)__vm\.due64.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
-      <PreprocessorDefinitions>F_CPU=84000000L;ARDUINO=108015;ARDUINO_SAM_DUE;ARDUINO_ARCH_SAM;__SAM3X8E__;USB_VID=0x2341;USB_PID=0x003e;USBCON;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VMICRO_INTELLISENSE;_VMDEBUG=1;F_CPU=84000000L;ARDUINO=108010;ARDUINO_SAM_DUE;ARDUINO_ARCH_SAM;__SAM3X8E__;USB_VID=0x2341;USB_PID=0x003e;USBCON;USB_MANUFACTURER="Arduino;USB_PRODUCT="Arduino;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu11</CLanguageStandard>
+      <CppLanguageStandard>gnu++11</CppLanguageStandard>
+      <CAdditionalWarning>
+      </CAdditionalWarning>
+      <CppAdditionalWarning>
+      </CppAdditionalWarning>
+      <UndefineAllPreprocessorDefinitions>true</UndefineAllPreprocessorDefinitions>
+      <GccToolChain>$(ProjectDir)..\..\..\..\..\..\\Users\\17par\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\bin\arm-none-eabi-g++</GccToolChain>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)..\due64;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\SAM3XDUE;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\libraries\sprites;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\c++\4.8.3\arm-none-eabi\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\arm-none-eabi\include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1\lib\gcc\arm-none-eabi\4.8.3\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\g++_arm_none_eabi\arm-none-eabi\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\g++_arm_none_eabi\arm_none_eabi\include\;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\g++_arm_none_eabi\lib\gcc\arm-none-eabi\4.4.1\include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include\pio;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\CMSIS\CMSIS\Include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\libsam;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\clearcore\Third Party\SAME53\CMSIS\Device\Include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\Teknic\libClearCore\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>$(ProjectDir)__vm\.due64.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <PreprocessorDefinitions>F_CPU=84000000L;ARDUINO=108019;ARDUINO_SAM_DUE;ARDUINO_ARCH_SAM;__SAM3X8E__;USB_VID=0x2341;USB_PID=0x003e;USBCON;USB_MANUFACTURER="Arduino;USB_PRODUCT="Arduino;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <LanguageStandard_C>stdc11</LanguageStandard_C>
+      <CLanguageStandard>gnu11</CLanguageStandard>
+      <CppLanguageStandard>gnu++11</CppLanguageStandard>
+      <CAdditionalWarning>
+      </CAdditionalWarning>
+      <CppAdditionalWarning>
+      </CppAdditionalWarning>
+      <UndefineAllPreprocessorDefinitions>true</UndefineAllPreprocessorDefinitions>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectCapability Include="VisualMicro" />
@@ -108,54 +123,84 @@
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_pulse_asm.S" />
-    <None Include="due64.ino">
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\abi.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\cortex_handlers.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\hooks.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\iar_calls_sam3.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\IPAddress.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\itoa.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\main.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\new.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Print.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Reset.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\RingBuffer.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Stream.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\syscalls_sam3.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\UARTClass.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USARTClass.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\CDC.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\PluggableUSB.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\USBCore.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\watchdog.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WInterrupts.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_analog.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_digital.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_pulse.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_shift.c" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WMath.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WString.cpp" />
+    <ClCompile Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x\variant.cpp" />
+    <ClCompile Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE_timers.cpp" />
+    <ClCompile Include="due64.ino">
       <FileType>CppCode</FileType>
-    </None>
+      <DeploymentContent>true</DeploymentContent>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_pulse_asm.S" />
     <None Include="src\arduino folders read me.txt">
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Arduino.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr\dtostrf.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr\interrupt.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr\pgmspace.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\binary.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Client.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\HardwareSerial.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\IPAddress.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\itoa.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Print.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Printable.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Reset.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\RingBuffer.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Server.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Stream.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\syscalls.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Tone.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\UARTClass.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Udp.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USARTClass.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\PluggableUSB.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\USBAPI.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\USBCore.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\USBDesc.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\watchdog.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WCharacter.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WInterrupts.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_analog.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_constants.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_digital.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_private.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_pulse.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_shift.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WMath.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WString.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x\pins_arduino.h" />
-    <ClInclude Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x\variant.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Arduino.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr\dtostrf.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr\interrupt.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr\pgmspace.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\binary.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Client.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\HardwareSerial.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\IPAddress.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\itoa.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Print.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Printable.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Reset.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\RingBuffer.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Server.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Stream.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\syscalls.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Tone.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\UARTClass.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Udp.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USARTClass.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\PluggableUSB.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\USBAPI.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\USBCore.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\USBDesc.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\watchdog.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WCharacter.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WInterrupts.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_analog.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_constants.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_digital.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_private.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_pulse.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_shift.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WMath.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WString.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x\pins_arduino.h" />
+    <ClInclude Include="..\..\..\..\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x\variant.h" />
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3a4c.h" />
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3a8c.h" />
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\sam3x4c.h" />
@@ -167,39 +212,11 @@
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE.H" />
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE_timers.h" />
     <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\system_sam3xa.h" />
+    <ClInclude Include="..\..\..\..\Documents\Arduino\libraries\sprites\sprites.h" />
     <ClInclude Include="__vm\.due64.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\abi.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\cortex_handlers.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\hooks.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\iar_calls_sam3.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\IPAddress.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\itoa.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\main.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\new.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Print.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Reset.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\RingBuffer.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\Stream.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\syscalls_sam3.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\UARTClass.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USARTClass.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\CDC.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\PluggableUSB.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\USB\USBCore.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\watchdog.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WInterrupts.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_analog.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_digital.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_pulse.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\wiring_shift.c" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WMath.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WString.cpp" />
-    <ClCompile Include="..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.12\variants\arduino_due_x\variant.cpp" />
-    <ClCompile Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE.cpp" />
-    <ClCompile Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\SAM3XDUE_timers.cpp" />
+    <Text Include="..\..\..\..\Documents\Arduino\libraries\SAM3XDUE\path.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

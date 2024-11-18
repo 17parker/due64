@@ -137,6 +137,7 @@ void TC0_Handler() {
 	REG_UART_IER = (1 << 3);
 }
 
+
 void UART_Handler() {
 	REG_UART_IDR = ~0;
 	REG_PWM_TPR = (uint32_t)buffer;
@@ -176,26 +177,3 @@ void loop() {
 	}
 }
 
-void run_controller() {
-	REG_PWM_TPR = (uint32_t)controller_data;
-	REG_PWM_TCR = controller_count;
-	REG_TC0_RC0 = controller_delay;
-	REG_TC0_CCR0 = (1 << 2);
-}
-
-void run_test() {
-	test[2] = b[(rx_read[0] >> 6) & 1];
-	test[3] = b[(rx_read[1] >> 6) & 1];
-	test[4] = b[(rx_read[2] >> 6) & 1];
-	test[5] = b[(rx_read[3] >> 6) & 1];
-	test[6] = b[(rx_read[4] >> 6) & 1];
-	test[7] = b[(rx_read[5] >> 6) & 1];
-	test[8] = b[(rx_read[6] >> 6) & 1];
-	test[9] = b[(rx_read[7] >> 6) & 1];
-	test[10] = stop;
-	test[11] = off;
-	REG_PWM_TPR = (uint32_t)test;
-	REG_PWM_TCR = test_count;
-	REG_TC0_RC0 = test_delay;
-	REG_TC0_CCR0 = (1 << 2);
-}
