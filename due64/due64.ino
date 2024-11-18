@@ -8,7 +8,7 @@ In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 #include "tasmc.h"
 
 
-#define CONTROLLER_DEBUG_TX
+#define CONTROLLER_TX_TEST
 
 struct Controller_Buttons {
 	uint8_t A, B, Z, START, DU, DD, DL, DR, RST, L, R, CU, CD, CL, CR, STICK_X, STICK_Y;
@@ -111,6 +111,8 @@ volatile Controller controller;
 	TO DO:
 		- Remove all unnecessary config (like the pins and stuff)
 		- Finish implementing all the controller functionality
+		- instead of having one block of code and sectioning out parts of it with macros for testing,
+			separate the different modes into functions and wrap the function calls (this is for clarity)
 */
 
 
@@ -173,13 +175,27 @@ void setup() {
 	delayMicros(50000); //Let things stabilize - 50ms
 
 
+	/*
+		Clock selected: MCK/8
+		Counter is stopped when counter hits RC
+		WAVSEL (waveform selection): UP mode with auto trigger on RC compare
+		WAVE (waveform mode) is enabled
+		ACPA: RA compare effect on TIOA is SET (is this a mistake?)
+		ACPC: RC compare effect on TIOA is TOGGLE
+	*/
 	REG_TC0_CMR0 = 1 | (1 << 6) | (1 << 14) | (1 << 15) | (1 << 16) | (0b11 << 18);	//Using TIOA on TC0
+	
+#ifndef CONTROLLER_TX_TEST
 	REG_TC0_RC0 = 21;
+#else
+	REG_TC0_RC0 = 210;
+#endif
+
 	REG_TC0_IER0 = (1 << 4);
 	NVIC_ClearPendingIRQ(TC0_IRQn);
 	NVIC_SetPriority(TC0_IRQn, 1);
 	NVIC_EnableIRQ(TC0_IRQn);
-	REG_TC0_CCR0 = 1 | (1 << 2); //CLK EN
+	REG_TC0_CCR0 = 1 | (1 << 2); //CLK enable and software trigger
 
 	REG_PWM_CLK = 3 | (1 << 9);
 	REG_PWM_CMR0 |= 0b1011;	//CLKA
@@ -231,13 +247,27 @@ void setup() {
 	lli_start_number_draw();
 	dmac_wait_for_done();
 	*/
-	REG_UART_RPR = (uint32_t)controller.rx_read;
-	REG_UART_RCR = controller.rx_read_count;
+
 	delayMicros(10000);
 	volatile uint32_t dummy = REG_UART_RHR;
 	NVIC_ClearPendingIRQ(UART_IRQn);
 	NVIC_EnableIRQ(UART_IRQn);
 	//lli_digit_e6.dscr = 0;
+
+#ifndef CONTROLLER_TX_TEST
+	REG_UART_RPR = (uint32_t)controller.rx_read;
+	REG_UART_RCR = controller.rx_read_count;
+#else
+	REG_UART_IDR = ~0;
+	REG_PWM_TPR = (uint32_t)controller.buffer;
+	//setting the TCR to not zero starts the transfer
+	REG_PWM_TCR = controller.buffer_size;
+
+	REG_TC0_RC0 = controller.buffer_delay;
+	//software trigger: counter is reset and the clock is started
+	REG_TC0_CCR0 = (1 << 2);
+#endif
+
 }
 
 void DMAC_Handler() {
@@ -254,10 +284,21 @@ void DMAC_Handler() {
 
 void TC0_Handler() {
 	volatile uint32_t dummy = REG_TC0_SR0;
+
+#ifndef CONTROLLER_TX_TEST
 	REG_UART_RPR = (uint32_t)controller.rx_read; //set UART DMA
 
 	//setting the RCR to not zero starts the transfer
 	REG_UART_RCR = controller.rx_read_count;
+#else
+	REG_PWM_TPR = (uint32_t)controller.buffer;
+	//setting the TCR to not zero starts the transfer
+	REG_PWM_TCR = controller.buffer_size;
+
+	REG_TC0_RC0 = controller.buffer_delay;
+	//software trigger: counter is reset and the clock is started
+	REG_TC0_CCR0 = (1 << 2);
+#endif
 	/*
 	if (!--cycles_remaining) {
 		if (!--inst_remaining) {
@@ -279,8 +320,12 @@ void TC0_Handler() {
 	}
 	*/
 
+#ifndef CONTROLLER_TX_TEST
 	//UART end of receive transfer interrupt enable
 	REG_UART_IER = (1 << 3);
+#else
+	REG_UART_IDR = ~0;
+#endif
 
 }
 
