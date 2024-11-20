@@ -23,7 +23,17 @@
 
 #include "SAM3XDUE.h"
 
-#define CONTROLLER_TX_TEST
+//#define CONTROLLER_TX_TEST
+
+
+//Globals
+//for the USART when getting controller data from the PC
+const uint8_t usart0_rx_buffer_len = 4;
+volatile uint8_t usart0_rx_buffer[usart0_rx_buffer_len];
+
+//when controller data comes in, signal for an update
+volatile bool update_ready = false;
+
 
 struct Controller_Buttons {
 	const uint8_t A, B, Z, START, DU, DD, DL, DR, RST, L, R, CU, CD, CL, CR, STICK_X, STICK_Y;
@@ -83,6 +93,10 @@ struct Controller {
 		this->buffer[34] = stop;
 		this->buffer[35] = off;
 		this->buffer[bUNUSED] = zro;
+		for (uint8_t i = 2; i < 34; ++i) {
+			this->buffer[i] = zro;
+		}
+		buffer[bSTART] = one;
 	}
 
 	/*
@@ -148,20 +162,50 @@ struct Controller {
 
 };
 
-volatile Controller controller;
+volatile Controller controller{};
 
 /*
 	TO DO:
 		- Finish implementing all the controller functionality
 */
 
-#ifdef CONTROLLER_TX_TEST
-volatile bool update_ready = false;
-volatile bool update_mode = true;
-#endif
 
-void update_buttons(volatile Controller& controller, volatile bool mode = true) {
 
+void update_buttons(volatile Controller& controller) {
+	//let buttons = ["A", "B", "Z", "L", "R", "START", "CU", "CD", "CL", "CR", "DU", "DD", "DL", "DR"];
+	/*
+		Order that the buttons come in:
+		bit number		7	6	5	4	3	2	1	0
+		Byte 1			CD	CU	ST	R	L	Z	B	A
+		Byte 2			0	0	DR	DL	DD	DU	CR	CL
+		Byte 3			X-axis
+		Byte 4			Y-axis
+
+	*/
+	uint8_t byte1 = usart0_rx_buffer[0];
+	uint8_t byte2 = usart0_rx_buffer[1];
+	uint8_t byte3 = usart0_rx_buffer[2];
+	uint8_t byte4 = usart0_rx_buffer[3];
+
+	volatile Controller_Buttons input{ .A = (byte1 & 1 << 0),
+										.B = (byte1 & 1 << 1),
+										.Z = (byte1 & 1 << 2),
+										.START = (byte1 & 1 << 5),
+										.DU = (byte2 & 1 << 2),
+										.DD = (byte2 & 1 << 3),
+										.DL = (byte2 & 1 << 4),
+										.DR = (byte2 & 1 << 5),
+										.RST = 0,
+										.L = (byte1 & 1 << 3),
+										.R = (byte1 & 1 << 4),
+										.CU = (byte1 & 1 << 6),
+										.CD = (byte1 & 1 << 7),
+										.CL = (byte2 & 1 << 0),
+										.CR = (byte2 & 1 << 1),
+										.STICK_X = byte3,
+										.STICK_Y = byte4 };
+
+	/*
 	volatile Controller_Buttons zero_buttons{ .A = 0, .B = 0, .Z = 0, .START = 0,
 												.DU = 0, .DD = 0, .DL = 0, .DR = 0, .RST = 0, .L = 0,
 												.R = 0, .CU = 0, .CD = 0, .CL = 0, .CR = 0,
@@ -170,16 +214,9 @@ void update_buttons(volatile Controller& controller, volatile bool mode = true) 
 												.DU = 0, .DD = 0, .DL = 1, .DR = 1, .RST = 0, .L = 0,
 												.R = 1, .CU = 1, .CD = 1, .CL = 0, .CR = 0,
 												.STICK_X = 42, .STICK_Y = -35 };
+	*/
 
-	if (mode)
-		controller.update_buttons(zero_buttons);
-	else
-		controller.update_buttons(test_buttons);
-}
-
-
-void update_buttons(volatile Controller& controller) {
-
+	controller.update_buttons(input);
 }
 
 void init_pins() {
@@ -212,8 +249,6 @@ void init_pins() {
 /*
 	USART will be used to get button data from the PC (web server)
 */
-const uint8_t usart0_rx_buffer_len = 4;
-uint8_t usart0_rx_buffer[usart0_rx_buffer_len];
 void init_usart0() {
 	pmc_enable_periph_clk(ID_USART0);
 
@@ -228,9 +263,8 @@ void init_usart0() {
 		normal channel mode
 		LSB sent first (bit 16 = 0, set bit 16 = 1 for MSB first)
 		16x oversampling mode (bit 19, set bit 19 to 1 for 8x)
-		NACK not generated (bit 20)
 	*/
-	REG_USART0_MR = (3 << 6) | (4 << 9) | (1 << 20);
+	REG_USART0_MR = (3 << 6) | (4 << 9);
 
 
 	/*
@@ -239,37 +273,55 @@ void init_usart0() {
 		Fractional part is disabled
 		BAUD = Selected clock/(oversample * CD)
 		0 < CD <= 65535 (0 is disabled)
-		CD = 365 --> BAUD = 230,136 (about .11% error)
-		CD = 364 --> BAUD = 230,769 (about .16% error)
 		An error higher than 5% is "not recommended"
 	*/
-	REG_USART0_BRGR = 365;
+	REG_USART0_BRGR = 23;
 
 
 	/*
-		USART Interrupt enable and mask registers
+		USART Interrupt enable register
 		ENDRX interrupt (bit 3) - End of transfer signal from PDC active
 	*/
-	REG_USART0_IMR = (1 << 3);
 	REG_USART0_IER = (1 << 3);
-
+	NVIC_SetPriority(USART0_IRQn, 1);
+	volatile uint32_t dummy = REG_UART_RHR;
+	NVIC_ClearPendingIRQ(USART0_IRQn);
+	NVIC_EnableIRQ(USART0_IRQn);
 
 	/*
 		USART0 PDC transfer control register
 		Receive pointer register
 		Receive count register
-		RX transfer enable
+		RX  and TX transfer enable
 	*/
 	REG_USART0_RPR = (uint32_t)usart0_rx_buffer;
 	REG_USART0_RCR = usart0_rx_buffer_len;
-	REG_USART0_PTCR = 1;
+	REG_USART0_TPR = (uint32_t)usart0_rx_buffer;
+	//don't set the TCR here or the transfer will start
+	REG_USART0_PTCR = 1 | (1 << 8);
 
 	/*
 		USART0 Control register
 		reset receiver and transmitter
 		enable receiver and transmitter
 	*/
-	REG_USART0_CR = (1 << 2) | (1 << 3) | (1 << 4) | (1 << 6);
+	REG_USART0_CR = (1 << 4) | (1 << 6);
+
+}
+
+void init_uart() {
+	pmc_enable_periph_clk(ID_UART);
+	uart_set_clk_div(2);
+	uart_set_parity_ch_mode();
+	//UART end of receive transfer interrupt enable
+	REG_UART_IER = (1 << 3);
+	//UART - peripheral DMA receiver transfer enable
+	REG_UART_PTCR = 1;
+	NVIC_SetPriority(UART_IRQn, 0);
+	uart_enable_rx();
+	volatile uint32_t dummy = REG_UART_RHR;
+	NVIC_ClearPendingIRQ(UART_IRQn);
+	NVIC_EnableIRQ(UART_IRQn);
 
 }
 
@@ -324,21 +376,6 @@ void init_pwm() {
 	REG_PWM_ENA |= 1;
 }
 
-void init_uart() {
-	pmc_enable_periph_clk(ID_UART);
-	uart_set_clk_div(2);
-	uart_set_parity_ch_mode();
-	//UART end of receive transfer interrupt enable
-	REG_UART_IER = (1 << 3);
-	//UART - peripheral DMA receiver transfer enable
-	REG_UART_PTCR = 1;
-	NVIC_SetPriority(UART_IRQn, 0);
-	uart_enable_rx();
-	volatile uint32_t dummy = REG_UART_RHR;
-	NVIC_ClearPendingIRQ(UART_IRQn);
-	NVIC_EnableIRQ(UART_IRQn);
-
-}
 
 void init_dmac() {
 	//Disable all DMAC interrupts
@@ -349,6 +386,8 @@ void init_dmac() {
 	REG_DMAC_EN = 1;
 }
 
+
+
 void setup() {
 
 	init_pins();
@@ -356,16 +395,13 @@ void setup() {
 
 	init_tc0();
 	init_pwm();
-#ifndef CONTROLLER_TX_TEST
 	init_uart();
-#endif
 	//init_dmac();
 	init_usart0();
 
 	delayMicros(10000);
 
 
-	update_buttons(controller, update_mode);
 
 #ifndef CONTROLLER_TX_TEST
 	REG_UART_RPR = (uint32_t)controller.rx_read;
@@ -378,10 +414,11 @@ void setup() {
 
 	REG_TC0_RC0 = controller.buffer_delay;
 	//software trigger: counter is reset and the clock is started
-	REG_TC0_CCR0 = (1 << 2);
+	//REG_TC0_CCR0 = (1 << 2);
 #endif
 
 }
+
 
 void DMAC_Handler() {
 	volatile uint32_t dummy = REG_DMAC_EBCISR;
@@ -393,6 +430,7 @@ void DMAC_Handler() {
 	//disable all DMAC channel interrupts
 	REG_DMAC_EBCIDR = ~0;
 }
+
 
 void TC0_Handler() {
 	volatile uint32_t dummy = REG_TC0_SR0;
@@ -407,11 +445,11 @@ void TC0_Handler() {
 #else
 	REG_PWM_TPR = (uint32_t)controller.buffer;
 	//setting the TCR to not zero starts the transfer
-	REG_PWM_TCR = controller.buffer_size;
+	//REG_PWM_TCR = controller.buffer_size;
 
 	REG_TC0_RC0 = controller.buffer_delay;
 	//software trigger: counter is reset and the clock is started
-	REG_TC0_CCR0 = (1 << 2);
+	//REG_TC0_CCR0 = (1 << 2);
 	update_ready = true;
 	REG_UART_IDR = ~0;
 #endif
@@ -433,9 +471,21 @@ void UART_Handler() {
 
 }
 
+/*
+	This is the order the buttons are sent in (14 buttons)
+	let buttons = ["A", "B", "Z", "L", "R", "START", "CU", "CD", "CL", "CR", "DU", "DD", "DL", "DR"];
+	Then the X-axis, then the Y-axis
+
+	This fires every time 4 bytes are received
+*/
 void USART0_Handler() {
 	volatile uint32_t dummy = REG_USART0_CSR;
 
+	//echo controller data for testing
+	REG_USART0_TPR = (uint32_t)usart0_rx_buffer;
+	REG_USART0_TCR = usart0_rx_buffer_len;
+
+	update_ready = true;
 	//reset the interrupt
 	REG_USART0_RPR = (uint32_t)usart0_rx_buffer;
 	REG_USART0_RCR = usart0_rx_buffer_len;
@@ -444,12 +494,20 @@ void USART0_Handler() {
 void loop() {
 #ifndef CONTROLLER_TX_TEST
 	//put the real code here
-#else
 	if (update_ready) {
-		update_buttons(controller, update_mode);
-		update_mode = !update_mode;
+		//update_buttons(controller);
+		//REG_PWM_TPR = (uint32_t)controller.buffer;
+		//REG_PWM_TCR = controller.buffer_size;
 		update_ready = false;
 	}
+#else
+	if (update_ready) {
+		update_buttons(controller);
+		//REG_PWM_TPR = (uint32_t)controller.buffer;
+		//REG_PWM_TCR = controller.buffer_size;
+		update_ready = false;
+	}
+
 #endif
 }
 
