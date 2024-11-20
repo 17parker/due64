@@ -47,131 +47,97 @@ struct Controller_Buttons {
 	*/
 };
 
-/*
-	I was thinking that I could theoretically extend this to have more than one controller
-	Then I'd have to have different PWMs, timers and UARTs for each one
-	I am not ready for that yet
-*/
-struct Controller {
-	uint16_t buffer[36];
-	static const uint32_t buffer_size = 36;
-	static const uint32_t buffer_delay = 1520;
-	uint8_t rx_read[8];
-	static const uint32_t rx_read_count = 8;
+//"one", "zro" and "stop" are values for the PWM duty cycle
+const uint32_t one = 7;
+const uint32_t zro = 21;
+const uint32_t stop = 14; //duty cycle for the stop bit
+const uint32_t off = 0;
+const uint32_t b[2] = { zro, one };
+volatile uint16_t buffer[36];
+const uint32_t buffer_size = 36;
+const uint32_t buffer_delay = 1520;
+volatile uint8_t rx_read[8];
+const uint32_t rx_read_count = 8;
 
-	//"one", "zro" and "stop" are values for the PWM duty cycle
-	static const uint32_t one = 7;
-	static const uint32_t zro = 21;
-	static const uint32_t stop = 14; //duty cycle for the stop bit
-	static const uint32_t off = 0;
-	const uint32_t b[2] = { zro, one };
-
-	enum button_offsets {
-		bA = 2,
-		bB,
-		bZ,
-		bSTART,
-		bDU,
-		bDD,
-		bDL,
-		bDR,
-		bRST,
-		bUNUSED,
-		bL,
-		bR,
-		bCU,
-		bCD,
-		bCL,
-		bCR,
-		sX = 18,
-		sY = 26
-	};
-
-	Controller() {
-		this->buffer[0] = off;
-		this->buffer[1] = off;
-		this->buffer[34] = stop;
-		this->buffer[35] = off;
-		this->buffer[bUNUSED] = zro;
-		for (uint8_t i = 2; i < 34; ++i) {
-			this->buffer[i] = zro;
-		}
-		buffer[bSTART] = one;
-	}
-
-	/*
-		The values for the buttons should be either 0 or 1
-
-		This can be optimized in a nasty way. The assembly generated is:
-			ld r3, <val>
-			uxth r3
-			str buffer[i], <val>
-
-		If the controller buttons are written to the buffer on construction, there isn't a need to copy at all
-		This gets a lot nastier if the Controller_Buttons object is volatile. Each button turns into:
-			2 ldr, 1 add, 1 uxth, 1 strh
-		Each of the stick axes gets turned into 1 ldr, 1 add, 2 extensions and one store (~one less cycle)
-
-		It might be better to have a volatile bool signal to the program that the buttons need to be updated, then update the buttons outside of an interrupt
-		That way the Controller_Buttons object does not need to be volatile
-
-		I think these optimizations are overkill for this and it wouldn't be easy if I ever implement multiple controllers
-
-	*/
-
-	void update_buttons(volatile Controller_Buttons& buttons) volatile {
-		buffer[bA] = b[buttons.A];
-		buffer[bB] = b[buttons.B];
-		buffer[bZ] = b[buttons.Z];
-		buffer[bSTART] = b[buttons.START];
-		buffer[bDU] = b[buttons.DU];
-		buffer[bDD] = b[buttons.DD];
-		buffer[bDL] = b[buttons.DL];
-		buffer[bDR] = b[buttons.DR];
-		buffer[bRST] = b[buttons.RST];
-		//buffer[bUNUSED] = zro; // this is set in the Controller constructor
-		buffer[bL] = b[buttons.L];
-		buffer[bR] = b[buttons.R];
-		buffer[bCU] = b[buttons.CU];
-		buffer[bCD] = b[buttons.CD];
-		buffer[bCL] = b[buttons.CL];
-		buffer[bCR] = b[buttons.CR];
-		uint8_t sx = (uint8_t)buttons.STICK_X;
-		buffer[sX + 0] = b[(sx >> 0) & 1]; //stick x
-		buffer[sX + 1] = b[(sx >> 1) & 1];
-		buffer[sX + 2] = b[(sx >> 2) & 1];
-		buffer[sX + 3] = b[(sx >> 3) & 1];
-		buffer[sX + 4] = b[(sx >> 4) & 1];
-		buffer[sX + 5] = b[(sx >> 5) & 1];
-		buffer[sX + 6] = b[(sx >> 6) & 1];
-		buffer[sX + 7] = b[(sx >> 7) & 1];
-		uint8_t sy = (uint8_t)buttons.STICK_Y;
-		buffer[sY + 0] = b[(sy >> 0) & 1]; //stick y
-		buffer[sY + 1] = b[(sy >> 1) & 1];
-		buffer[sY + 2] = b[(sy >> 2) & 1];
-		buffer[sY + 3] = b[(sy >> 3) & 1];
-		buffer[sY + 4] = b[(sy >> 4) & 1];
-		buffer[sY + 5] = b[(sy >> 5) & 1];
-		buffer[sY + 6] = b[(sy >> 6) & 1];
-		buffer[sY + 7] = b[(sy >> 7) & 1];
-	}
-
-	void read_buttons() {
-		// I'm not sure if I'm going to implement this here
-	}
-
+enum button_offsets {
+	bA = 2,
+	bB,
+	bZ,
+	bSTART,
+	bDU,
+	bDD,
+	bDL,
+	bDR,
+	bRST,
+	bUNUSED,
+	bL,
+	bR,
+	bCU,
+	bCD,
+	bCL,
+	bCR,
+	sX = 18,
+	sY = 26
 };
 
-volatile Controller controller{};
 
 /*
-	TO DO:
-		- Finish implementing all the controller functionality
+	The values for the buttons should be either 0 or 1
+
+	This can be optimized in a nasty way. The assembly generated is:
+		ld r3, <val>
+		uxth r3
+		str buffer[i], <val>
+
+	If the controller buttons are written to the buffer on construction, there isn't a need to copy at all
+	This gets a lot nastier if the Controller_Buttons object is volatile. Each button turns into:
+		2 ldr, 1 add, 1 uxth, 1 strh
+	Each of the stick axes gets turned into 1 ldr, 1 add, 2 extensions and one store (~one less cycle)
+
+	It might be better to have a volatile bool signal to the program that the buttons need to be updated, then update the buttons outside of an interrupt
+	That way the Controller_Buttons object does not need to be volatile
+
+	I think these optimizations are overkill for this and it wouldn't be easy if I ever implement multiple controllers
+
 */
+void update_buttons(volatile Controller_Buttons& buttons) {
+	buffer[bA] = b[buttons.A];
+	buffer[bB] = b[buttons.B];
+	buffer[bZ] = b[buttons.Z];
+	buffer[bSTART] = b[buttons.START];
+	buffer[bDU] = b[buttons.DU];
+	buffer[bDD] = b[buttons.DD];
+	buffer[bDL] = b[buttons.DL];
+	buffer[bDR] = b[buttons.DR];
+	buffer[bRST] = b[buttons.RST];
+	//buffer[bUNUSED] = zro; // this is set in the Controller constructor
+	buffer[bL] = b[buttons.L];
+	buffer[bR] = b[buttons.R];
+	buffer[bCU] = b[buttons.CU];
+	buffer[bCD] = b[buttons.CD];
+	buffer[bCL] = b[buttons.CL];
+	buffer[bCR] = b[buttons.CR];
+	uint8_t sx = (uint8_t)buttons.STICK_X;
+	buffer[sX + 0] = b[(sx >> 7) & 1]; //stick x
+	buffer[sX + 1] = b[(sx >> 6) & 1];
+	buffer[sX + 2] = b[(sx >> 5) & 1];
+	buffer[sX + 3] = b[(sx >> 4) & 1];
+	buffer[sX + 4] = b[(sx >> 3) & 1];
+	buffer[sX + 5] = b[(sx >> 2) & 1];
+	buffer[sX + 6] = b[(sx >> 1) & 1];
+	buffer[sX + 7] = b[(sx >> 0) & 1];
+	uint8_t sy = (uint8_t)buttons.STICK_Y;
+	buffer[sY + 0] = b[(sy >> 7) & 1]; //stick y
+	buffer[sY + 1] = b[(sy >> 6) & 1];
+	buffer[sY + 2] = b[(sy >> 5) & 1];
+	buffer[sY + 3] = b[(sy >> 4) & 1];
+	buffer[sY + 4] = b[(sy >> 3) & 1];
+	buffer[sY + 5] = b[(sy >> 2) & 1];
+	buffer[sY + 6] = b[(sy >> 1) & 1];
+	buffer[sY + 7] = b[(sy >> 0) & 1];
+}
 
-
-
-void update_buttons(volatile Controller& controller) {
+void update_buttons() {
 	//let buttons = ["A", "B", "Z", "L", "R", "START", "CU", "CD", "CL", "CR", "DU", "DD", "DL", "DR"];
 	/*
 		Order that the buttons come in:
@@ -187,36 +153,27 @@ void update_buttons(volatile Controller& controller) {
 	uint8_t byte3 = usart0_rx_buffer[2];
 	uint8_t byte4 = usart0_rx_buffer[3];
 
-	volatile Controller_Buttons input{ .A = (byte1 & 1 << 0),
-										.B = (byte1 & 1 << 1),
-										.Z = (byte1 & 1 << 2),
-										.START = (byte1 & 1 << 5),
-										.DU = (byte2 & 1 << 2),
-										.DD = (byte2 & 1 << 3),
-										.DL = (byte2 & 1 << 4),
-										.DR = (byte2 & 1 << 5),
+	volatile Controller_Buttons input{ .A = ((byte1 >> 0) & 1),
+										.B = ((byte1 >> 1) & 1),
+										.Z = ((byte1 >> 2) & 1),
+										.START = ((byte1 >> 5) & 1),
+										.DU = ((byte2 >> 2) & 1),
+										.DD = ((byte2 >> 3) & 1),
+										.DL = ((byte2 >> 4) & 1),
+										.DR = ((byte2 >> 5) & 1),
 										.RST = 0,
-										.L = (byte1 & 1 << 3),
-										.R = (byte1 & 1 << 4),
-										.CU = (byte1 & 1 << 6),
-										.CD = (byte1 & 1 << 7),
-										.CL = (byte2 & 1 << 0),
-										.CR = (byte2 & 1 << 1),
+										.L = ((byte1 >> 3) & 1),
+										.R = ((byte1 >> 4) & 1),
+										.CU = ((byte1 >> 6) & 1),
+										.CD = ((byte1 >> 7) & 1),
+										.CL = ((byte2 >> 0) & 1),
+										.CR = ((byte2 >> 1) & 1),
 										.STICK_X = byte3,
 										.STICK_Y = byte4 };
 
-	/*
-	volatile Controller_Buttons zero_buttons{ .A = 0, .B = 0, .Z = 0, .START = 0,
-												.DU = 0, .DD = 0, .DL = 0, .DR = 0, .RST = 0, .L = 0,
-												.R = 0, .CU = 0, .CD = 0, .CL = 0, .CR = 0,
-												.STICK_X = 0, .STICK_Y = 0 };
-	volatile Controller_Buttons test_buttons{ .A = 0, .B = 0, .Z = 0, .START = 1,
-												.DU = 0, .DD = 0, .DL = 1, .DR = 1, .RST = 0, .L = 0,
-												.R = 1, .CU = 1, .CD = 1, .CL = 0, .CR = 0,
-												.STICK_X = 42, .STICK_Y = -35 };
-	*/
 
-	controller.update_buttons(input);
+	update_buttons(input);
+
 }
 
 void init_pins() {
@@ -369,7 +326,7 @@ void init_pwm() {
 	//Upper value for the duty cycle (what it "counts" to)
 	REG_PWM_CPRD0 = 28;
 	//current duty cycle
-	REG_PWM_CDTY0 = Controller::off;
+	REG_PWM_CDTY0 = off;
 
 	//PWM - peripheral DMA transmitter transfer enable
 	REG_PWM_PTCR = (1 << 8);
@@ -387,8 +344,17 @@ void init_dmac() {
 }
 
 
-
 void setup() {
+
+	buffer[0] = off;
+	buffer[1] = off;
+	buffer[34] = stop;
+	buffer[35] = off;
+	buffer[bUNUSED] = zro;
+	for (uint8_t i = 2; i < 34; ++i) {
+		buffer[i] = zro;
+	}
+	buffer[bSTART] = one;
 
 	init_pins();
 	delayMicros(50000); //Let things stabilize - 50ms
@@ -404,8 +370,8 @@ void setup() {
 
 
 #ifndef CONTROLLER_TX_TEST
-	REG_UART_RPR = (uint32_t)controller.rx_read;
-	REG_UART_RCR = controller.rx_read_count;
+	REG_UART_RPR = (uint32_t)rx_read;
+	REG_UART_RCR = rx_read_count;
 #else
 	REG_UART_IDR = ~0;
 	REG_PWM_TPR = (uint32_t)controller.buffer;
@@ -436,10 +402,10 @@ void TC0_Handler() {
 	volatile uint32_t dummy = REG_TC0_SR0;
 
 #ifndef CONTROLLER_TX_TEST
-	REG_UART_RPR = (uint32_t)controller.rx_read; //set UART DMA
+	REG_UART_RPR = (uint32_t)rx_read; //set UART DMA
 
 	//setting the RCR to not zero starts the transfer
-	REG_UART_RCR = controller.rx_read_count;
+	REG_UART_RCR = rx_read_count;
 	//UART end of receive transfer interrupt enable
 	REG_UART_IER = (1 << 3);
 #else
@@ -461,11 +427,11 @@ void UART_Handler() {
 	volatile uint32_t dummy = REG_UART_SR;
 	REG_UART_IDR = ~0;
 
-	REG_PWM_TPR = (uint32_t)controller.buffer;
+	REG_PWM_TPR = (uint32_t)buffer;
 	//setting the TCR to not zero starts the transfer
-	REG_PWM_TCR = controller.buffer_size;
+	REG_PWM_TCR = buffer_size;
 
-	REG_TC0_RC0 = controller.buffer_delay;
+	REG_TC0_RC0 = buffer_delay;
 	//software trigger: counter is reset and the clock is started
 	REG_TC0_CCR0 = (1 << 2);
 
@@ -492,22 +458,12 @@ void USART0_Handler() {
 }
 
 void loop() {
-#ifndef CONTROLLER_TX_TEST
-	//put the real code here
 	if (update_ready) {
-		//update_buttons(controller);
-		//REG_PWM_TPR = (uint32_t)controller.buffer;
-		//REG_PWM_TCR = controller.buffer_size;
-		update_ready = false;
-	}
-#else
-	if (update_ready) {
-		update_buttons(controller);
+		update_buttons();
 		//REG_PWM_TPR = (uint32_t)controller.buffer;
 		//REG_PWM_TCR = controller.buffer_size;
 		update_ready = false;
 	}
 
-#endif
 }
 
