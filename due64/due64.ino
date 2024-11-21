@@ -1,6 +1,8 @@
 /*
 	controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
 	In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
+	using a controller test rom and my everdrive, it appears it's between -81 and 81
+	one of my controllers can only do -76 to 76, so seems like anything in this range is OK
 
 	DMAC was only for the TFT display and the 8x8 LED matrix
 
@@ -39,8 +41,40 @@ const uint32_t b[2] = { zro, one };
 volatile uint16_t buffer[36];
 const uint32_t buffer_size = 36;
 const uint32_t buffer_delay = 1520;
-volatile uint8_t rx_read[8];
-const uint32_t rx_read_count = 8;
+
+/*
+	I added a 9th byte to the rx_read for testing
+	Once all 8 bytes are received, I will put the assembled byte at the very end
+	this way, all RX bytes are echoed followed by the assembled byte
+	the read_count stays at 8 because it will still only read 8 bytes from the console
+*/
+volatile uint8_t rx_read[10];
+const uint32_t rx_read_count = 9;
+
+/*
+	the bytes it sends are:
+		0x05: controller identifier (I am a controller)
+		0x00: always 0 for the status command
+		0x02: No pak is installed
+
+	Data is sent MSB first
+*/
+volatile uint16_t status_response[28] = {
+	off, off,
+	zro, zro, zro, zro, zro, one, zro, one, //0x05
+	zro, zro, zro, zro, zro, zro, zro, zro, //0x00
+	zro, zro, zro, zro, zro, zro, one, zro, //0x01 (0x01 = pak installed, 0x02 = no pak, 0x04 = checksum err in prev command)
+	stop,off
+};
+const uint32_t status_response_size = 28;
+const uint32_t status_response_delay = 1200;
+
+volatile uint16_t garbage[10] = {
+	off, off,
+	one, one, one, one, one, one,
+	stop, off
+};
+const uint32_t garbage_size = 10;
 
 enum button_offsets {
 	bA = 2,
@@ -70,7 +104,7 @@ void update_buttons() {
 	/*
 	Definition from the JS script:
 		let buttons = ["A", "B", "Z", "L", "R", "START", "CU", "CD", "CL", "CR", "DU", "DD", "DL", "DR"];
-		
+
 	Order that the buttons come in:
 		bit number		7	6	5	4	3	2	1	0
 		Byte 0			CD	CU	ST	R	L	Z	B	A
@@ -95,7 +129,7 @@ void update_buttons() {
 	buffer[bCD] = B(0, 7);
 	buffer[bCL] = B(1, 0);
 	buffer[bCR] = B(1, 1);
-	
+
 	buffer[sX + 0] = B(2, 7); //stick x
 	buffer[sX + 1] = B(2, 6);
 	buffer[sX + 2] = B(2, 5);
@@ -113,7 +147,7 @@ void update_buttons() {
 	buffer[sY + 5] = B(3, 2);
 	buffer[sY + 6] = B(3, 1);
 	buffer[sY + 7] = B(3, 0);
-	
+
 #undef B
 }
 
@@ -131,7 +165,7 @@ void init_pins() {
 	pio_enable_output(PIOA, UTXD | TX0);
 	pio_disable_output(PIOA, URXD | RX0);
 	pio_set_periph_mode_A(PIOA, UTXD | URXD | TX0 | RX0);
-	pio_disable_pio(PIOA, URXD | URXD | TX0 | RX0);
+	pio_disable_pio(PIOA, URXD | UTXD | TX0 | RX0);
 	pio_disable_pullup(PIOB, PIN_2B | PIN_20B);
 	pio_enable_output(PIOB, PIN_2B | PIN_20B);
 	pio_disable_pio(PIOB, PIN_2B | PIN_20B);
@@ -213,10 +247,10 @@ void init_uart() {
 	uart_set_parity_ch_mode();
 	//UART end of receive transfer interrupt enable
 	REG_UART_IER = (1 << 3);
-	//UART - peripheral DMA receiver transfer enable
-	REG_UART_PTCR = 1;
+	//UART - peripheral DMA receiver and transmitter transfer enable
+	REG_UART_PTCR = 1 | (1 << 8);
 	NVIC_SetPriority(UART_IRQn, 0);
-	uart_enable_rx();
+	uart_enable_rx_tx();
 	volatile uint32_t dummy = REG_UART_RHR;
 	NVIC_ClearPendingIRQ(UART_IRQn);
 	NVIC_EnableIRQ(UART_IRQn);
@@ -300,7 +334,7 @@ void setup() {
 	init_usart0();
 	//init_dmac();
 
-	delayMicros(10000); //10ms
+	delayMicros(1000000); //10ms
 
 
 	REG_UART_RPR = (uint32_t)rx_read;
@@ -337,14 +371,76 @@ void TC0_Handler() {
 void UART_Handler() {
 	volatile uint32_t dummy = REG_UART_SR;
 	REG_UART_IDR = ~0;
+	/*
+		we do 8 UART receives per command, one for each bit sent by the console
+		this means we have to get the middle bit from each of the 8 bytes
+		I am just not sure what part of the bytes I need to extract
 
-	REG_PWM_TPR = (uint32_t)buffer;
-	//setting the TCR to not zero starts the transfer
-	REG_PWM_TCR = buffer_size;
+		data comes in from the console MSB
 
-	REG_TC0_RC0 = buffer_delay;
-	//software trigger: counter is reset and the clock is started
-	REG_TC0_CCR0 = (1 << 2);
+		When the console sends a "1" bit, the MCU reads 0xF8
+		When the console sends a "0" bit, the MCU reads 0x80
+		
+		bit		0	1	2	3	4	5	6	7	
+		one		0	0	0	1	1	1	1	1
+		zro		0	0	0	0	0	0	0	1
+		READ			   |<----HERE---->|	
+
+
+		So to determine if the bit is a 1 or a 0, read any bit 3-6
+
+		There's a problem in that a garbage byte is read before everything else,
+		so I have to read one extra byte and throw the first one away
+	*/
+	volatile uint8_t console_command =
+		(((rx_read[8] >> 5) & 1) << 0)
+		| (((rx_read[7] >> 5) & 1) << 1)
+		| (((rx_read[6] >> 5) & 1) << 2)
+		| (((rx_read[5] >> 5) & 1) << 3)
+		| (((rx_read[4] >> 5) & 1) << 4)
+		| (((rx_read[3] >> 5) & 1) << 5)
+		| (((rx_read[2] >> 5) & 1) << 6)
+		| (((rx_read[1] >> 5) & 1) << 7);
+
+	rx_read[9] = console_command;
+
+	//echo the rx data for testing
+	REG_UART_TPR = (uint32_t)rx_read;
+	REG_UART_TCR = rx_read_count + 1;
+
+	//defaults to sending controller data
+	if (console_command == 0x00) {
+		REG_PWM_TPR = (uint32_t)status_response;
+		//setting the TCR to not zero starts the transfer
+		REG_PWM_TCR = status_response_size;
+
+		REG_TC0_RC0 = status_response_delay;
+		//software trigger: counter is reset and the clock is started
+		REG_TC0_CCR0 = (1 << 2);
+	}
+	else  if (console_command == 0x01) {
+		REG_PWM_TPR = (uint32_t)buffer;
+		//setting the TCR to not zero starts the transfer
+		REG_PWM_TCR = buffer_size;
+
+		REG_TC0_RC0 = buffer_delay;
+		//software trigger: counter is reset and the clock is started
+		REG_TC0_CCR0 = (1 << 2);
+	}
+	else { 
+		/*
+			this is to make it easier for me to tell if it misunderstood a command
+			I might move it to one of the other handlers or the USART to the PC, but IDK
+			I don't want to mess with triggering handlers within handlers at the moment
+		*/
+		REG_PWM_TPR = (uint32_t)garbage;
+		//setting the TCR to not zero starts the transfer
+		REG_PWM_TCR = garbage_size;
+
+		REG_TC0_RC0 = buffer_delay;
+		//software trigger: counter is reset and the clock is started
+		REG_TC0_CCR0 = (1 << 2);
+	}
 
 }
 
