@@ -2,7 +2,6 @@
 	controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
 	In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 
-
 	DMAC was only for the TFT display and the 8x8 LED matrix
 
 	How data transfers work:
@@ -23,29 +22,13 @@
 
 #include "SAM3XDUE.h"
 
-//#define CONTROLLER_TX_TEST
-
-
-//Globals
 //for the USART when getting controller data from the PC
 const uint8_t usart0_rx_buffer_len = 4;
 volatile uint8_t usart0_rx_buffer[usart0_rx_buffer_len];
 
-//when controller data comes in, signal for an update
+//when controller data comes in, signal for an update instead of updating during the interrupt
+//a race condition on this scale means an input might be messed up for one cycle
 volatile bool update_ready = false;
-
-
-struct Controller_Buttons {
-	const uint8_t A, B, Z, START, DU, DD, DL, DR, RST, L, R, CU, CD, CL, CR, STICK_X, STICK_Y;
-
-	/*
-	Controller_Buttons(uint8_t a, uint8_t b, uint8_t z, uint8_t start, uint8_t du, uint8_t dd,
-		uint8_t  dl, uint8_t  dr, uint8_t  rst, uint8_t  l, uint8_t  r, uint8_t cu, uint8_t  cd, uint8_t cl, uint8_t cr,
-		int8_t stick_x, int8_t stick_y) : A(a), B(b), Z(z), START(start), DU(du), DD(dd), DL(dl), DR(dr), RST(rst), L(l),
-		R(r), CU(cu), CD(cd), CL(cl), CR(cr), STICK_X(stick_x), STICK_Y(stick_y) {
-	}
-	*/
-};
 
 //"one", "zro" and "stop" are values for the PWM duty cycle
 const uint32_t one = 7;
@@ -80,100 +63,58 @@ enum button_offsets {
 	sY = 26
 };
 
-
 /*
 	The values for the buttons should be either 0 or 1
-
-	This can be optimized in a nasty way. The assembly generated is:
-		ld r3, <val>
-		uxth r3
-		str buffer[i], <val>
-
-	If the controller buttons are written to the buffer on construction, there isn't a need to copy at all
-	This gets a lot nastier if the Controller_Buttons object is volatile. Each button turns into:
-		2 ldr, 1 add, 1 uxth, 1 strh
-	Each of the stick axes gets turned into 1 ldr, 1 add, 2 extensions and one store (~one less cycle)
-
-	It might be better to have a volatile bool signal to the program that the buttons need to be updated, then update the buttons outside of an interrupt
-	That way the Controller_Buttons object does not need to be volatile
-
-	I think these optimizations are overkill for this and it wouldn't be easy if I ever implement multiple controllers
-
 */
-void update_buttons(volatile Controller_Buttons& buttons) {
-	buffer[bA] = b[buttons.A];
-	buffer[bB] = b[buttons.B];
-	buffer[bZ] = b[buttons.Z];
-	buffer[bSTART] = b[buttons.START];
-	buffer[bDU] = b[buttons.DU];
-	buffer[bDD] = b[buttons.DD];
-	buffer[bDL] = b[buttons.DL];
-	buffer[bDR] = b[buttons.DR];
-	buffer[bRST] = b[buttons.RST];
-	//buffer[bUNUSED] = zro; // this is set in the Controller constructor
-	buffer[bL] = b[buttons.L];
-	buffer[bR] = b[buttons.R];
-	buffer[bCU] = b[buttons.CU];
-	buffer[bCD] = b[buttons.CD];
-	buffer[bCL] = b[buttons.CL];
-	buffer[bCR] = b[buttons.CR];
-	uint8_t sx = (uint8_t)buttons.STICK_X;
-	buffer[sX + 0] = b[(sx >> 7) & 1]; //stick x
-	buffer[sX + 1] = b[(sx >> 6) & 1];
-	buffer[sX + 2] = b[(sx >> 5) & 1];
-	buffer[sX + 3] = b[(sx >> 4) & 1];
-	buffer[sX + 4] = b[(sx >> 3) & 1];
-	buffer[sX + 5] = b[(sx >> 2) & 1];
-	buffer[sX + 6] = b[(sx >> 1) & 1];
-	buffer[sX + 7] = b[(sx >> 0) & 1];
-	uint8_t sy = (uint8_t)buttons.STICK_Y;
-	buffer[sY + 0] = b[(sy >> 7) & 1]; //stick y
-	buffer[sY + 1] = b[(sy >> 6) & 1];
-	buffer[sY + 2] = b[(sy >> 5) & 1];
-	buffer[sY + 3] = b[(sy >> 4) & 1];
-	buffer[sY + 4] = b[(sy >> 3) & 1];
-	buffer[sY + 5] = b[(sy >> 2) & 1];
-	buffer[sY + 6] = b[(sy >> 1) & 1];
-	buffer[sY + 7] = b[(sy >> 0) & 1];
-}
-
 void update_buttons() {
-	//let buttons = ["A", "B", "Z", "L", "R", "START", "CU", "CD", "CL", "CR", "DU", "DD", "DL", "DR"];
 	/*
-		Order that the buttons come in:
+	Definition from the JS script:
+		let buttons = ["A", "B", "Z", "L", "R", "START", "CU", "CD", "CL", "CR", "DU", "DD", "DL", "DR"];
+		
+	Order that the buttons come in:
 		bit number		7	6	5	4	3	2	1	0
-		Byte 1			CD	CU	ST	R	L	Z	B	A
-		Byte 2			0	0	DR	DL	DD	DU	CR	CL
-		Byte 3			X-axis
-		Byte 4			Y-axis
+		Byte 0			CD	CU	ST	R	L	Z	B	A
+		Byte 1			0	0	DR	DL	DD	DU	CR	CL
+		Byte 2			X-axis
+		Byte 3			Y-axis
 
 	*/
-	uint8_t byte1 = usart0_rx_buffer[0];
-	uint8_t byte2 = usart0_rx_buffer[1];
-	uint8_t byte3 = usart0_rx_buffer[2];
-	uint8_t byte4 = usart0_rx_buffer[3];
+#define B(bytenum, pos) b[((usart0_rx_buffer[(bytenum)] >> (pos)) & 1)]
 
-	volatile Controller_Buttons input{ .A = ((byte1 >> 0) & 1),
-										.B = ((byte1 >> 1) & 1),
-										.Z = ((byte1 >> 2) & 1),
-										.START = ((byte1 >> 5) & 1),
-										.DU = ((byte2 >> 2) & 1),
-										.DD = ((byte2 >> 3) & 1),
-										.DL = ((byte2 >> 4) & 1),
-										.DR = ((byte2 >> 5) & 1),
-										.RST = 0,
-										.L = ((byte1 >> 3) & 1),
-										.R = ((byte1 >> 4) & 1),
-										.CU = ((byte1 >> 6) & 1),
-										.CD = ((byte1 >> 7) & 1),
-										.CL = ((byte2 >> 0) & 1),
-										.CR = ((byte2 >> 1) & 1),
-										.STICK_X = byte3,
-										.STICK_Y = byte4 };
+	buffer[bA] = B(0, 0);
+	buffer[bB] = B(0, 1);
+	buffer[bZ] = B(0, 2);
+	buffer[bSTART] = B(0, 5);
+	buffer[bDU] = B(1, 2);
+	buffer[bDD] = B(1, 3);
+	buffer[bDL] = B(1, 4);
+	buffer[bDR] = B(1, 5);
+	buffer[bL] = B(0, 3);
+	buffer[bR] = B(0, 4);
+	buffer[bCU] = B(0, 6);
+	buffer[bCD] = B(0, 7);
+	buffer[bCL] = B(1, 0);
+	buffer[bCR] = B(1, 1);
+	
+	buffer[sX + 0] = B(2, 7); //stick x
+	buffer[sX + 1] = B(2, 6);
+	buffer[sX + 2] = B(2, 5);
+	buffer[sX + 3] = B(2, 4);
+	buffer[sX + 4] = B(2, 3);
+	buffer[sX + 5] = B(2, 2);
+	buffer[sX + 6] = B(2, 1);
+	buffer[sX + 7] = B(2, 0);
 
-
-	update_buttons(input);
-
+	buffer[sY + 0] = B(3, 7); //stick y
+	buffer[sY + 1] = B(3, 6);
+	buffer[sY + 2] = B(3, 5);
+	buffer[sY + 3] = B(3, 4);
+	buffer[sY + 4] = B(3, 3);
+	buffer[sY + 5] = B(3, 2);
+	buffer[sY + 6] = B(3, 1);
+	buffer[sY + 7] = B(3, 0);
+	
+#undef B
 }
 
 void init_pins() {
@@ -182,7 +123,7 @@ void init_pins() {
 	Pin 0 - UART RX - BROWN WIRE of the adapter
 	Pin 1 - UART TX (unused right now)
 	Pin 2 - TIOA output
-	Pin 18 - USART0 TX (unused right now)
+	Pin 18 - USART0 TX (echoes the RX input)
 	Pin 19 - USART0 RX
 	Pin 20 - PWMH0 output - PURPLE WIRE
 	*/
@@ -289,7 +230,7 @@ void init_tc0() {
 	Counter is stopped when counter hits RC
 	WAVSEL (waveform selection): UP mode with auto trigger on RC compare
 	WAVE (waveform mode) is enabled
-	ACPA: RA compare effect on TIOA is SET (is this a mistake?)
+	ACPA: RA compare effect on TIOA is SET
 	ACPC: RC compare effect on TIOA is TOGGLE
 	*/
 	REG_TC0_CMR0 = 1 | (1 << 6) | (1 << 14) | (1 << 15) | (1 << 16) | (0b11 << 18);	//Using TIOA on TC0
@@ -298,11 +239,7 @@ void init_tc0() {
 		The timer in normal operation should only last as long as the UART RX phase (8 bytes)
 		In testing mode, the timer restarts the PWM DMA so it needs to be long enough for the PWM to finish
 	*/
-#ifndef CONTROLLER_TX_TEST
 	REG_TC0_RC0 = 21;
-#else
-	REG_TC0_RC0 = 210;
-#endif
 
 	REG_TC0_IER0 = (1 << 4);
 	NVIC_ClearPendingIRQ(TC0_IRQn);
@@ -350,11 +287,9 @@ void setup() {
 	buffer[1] = off;
 	buffer[34] = stop;
 	buffer[35] = off;
-	buffer[bUNUSED] = zro;
 	for (uint8_t i = 2; i < 34; ++i) {
 		buffer[i] = zro;
 	}
-	buffer[bSTART] = one;
 
 	init_pins();
 	delayMicros(50000); //Let things stabilize - 50ms
@@ -362,26 +297,14 @@ void setup() {
 	init_tc0();
 	init_pwm();
 	init_uart();
-	//init_dmac();
 	init_usart0();
+	//init_dmac();
 
-	delayMicros(10000);
+	delayMicros(10000); //10ms
 
 
-
-#ifndef CONTROLLER_TX_TEST
 	REG_UART_RPR = (uint32_t)rx_read;
 	REG_UART_RCR = rx_read_count;
-#else
-	REG_UART_IDR = ~0;
-	REG_PWM_TPR = (uint32_t)controller.buffer;
-	//setting the TCR to not zero starts the transfer
-	REG_PWM_TCR = controller.buffer_size;
-
-	REG_TC0_RC0 = controller.buffer_delay;
-	//software trigger: counter is reset and the clock is started
-	//REG_TC0_CCR0 = (1 << 2);
-#endif
 
 }
 
@@ -401,24 +324,12 @@ void DMAC_Handler() {
 void TC0_Handler() {
 	volatile uint32_t dummy = REG_TC0_SR0;
 
-#ifndef CONTROLLER_TX_TEST
 	REG_UART_RPR = (uint32_t)rx_read; //set UART DMA
 
 	//setting the RCR to not zero starts the transfer
 	REG_UART_RCR = rx_read_count;
 	//UART end of receive transfer interrupt enable
 	REG_UART_IER = (1 << 3);
-#else
-	REG_PWM_TPR = (uint32_t)controller.buffer;
-	//setting the TCR to not zero starts the transfer
-	//REG_PWM_TCR = controller.buffer_size;
-
-	REG_TC0_RC0 = controller.buffer_delay;
-	//software trigger: counter is reset and the clock is started
-	//REG_TC0_CCR0 = (1 << 2);
-	update_ready = true;
-	REG_UART_IDR = ~0;
-#endif
 
 }
 
@@ -460,10 +371,7 @@ void USART0_Handler() {
 void loop() {
 	if (update_ready) {
 		update_buttons();
-		//REG_PWM_TPR = (uint32_t)controller.buffer;
-		//REG_PWM_TCR = controller.buffer_size;
 		update_ready = false;
 	}
-
 }
 
