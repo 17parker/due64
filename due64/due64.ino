@@ -433,6 +433,16 @@ void UART_Handler() {
 			I might move it to one of the other handlers or the USART to the PC, but IDK
 			I don't want to mess with triggering handlers within handlers at the moment
 		*/
+		REG_PWM_TPR = (uint32_t)buffer;
+		//setting the TCR to not zero starts the transfer
+		REG_PWM_TCR = buffer_size;
+
+		REG_TC0_RC0 = buffer_delay;
+		//software trigger: counter is reset and the clock is started
+		REG_TC0_CCR0 = (1 << 2);
+
+		//who could have guessed that the thing I didn't understand doesn't work right??
+		/*
 		REG_PWM_TPR = (uint32_t)garbage;
 		//setting the TCR to not zero starts the transfer
 		REG_PWM_TCR = garbage_size;
@@ -440,6 +450,7 @@ void UART_Handler() {
 		REG_TC0_RC0 = buffer_delay;
 		//software trigger: counter is reset and the clock is started
 		REG_TC0_CCR0 = (1 << 2);
+		*/
 	}
 
 }
