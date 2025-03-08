@@ -33,4 +33,5 @@ The instructions currently programmed in collect a "power star" in the game "Sup
 # To do
 ~~Connect the microcontroller to wi-fi, and give someone the ability to send controls via the internet.~~
 There is (or will be) a separate repo where the Arduino is connected to a PC via USB and the host PC acts as a server that gets inputs and shows game footage over the internet
+
 It might be possible to clean up unused code, but that's not a big concern if it runs
