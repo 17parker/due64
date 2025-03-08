@@ -57,6 +57,7 @@ enum button_offsets {
 	Y = 24
 };
 
+//"linked list item"
 struct lli {
 	uint32_t saddr; //points to source of data
 	uint32_t daddr; //CONSTANT - points to address of destination

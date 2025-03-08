@@ -16,10 +16,15 @@ struct instructions {
 	uint32_t data;
 	uint32_t cycles;
 };
+
+/*
+	For simplicity, the entire label is always drawn
+	If the label is shorter than the maximum length, the rest of the letters are blanks
+*/
 struct area {
 	const uint32_t instruction_count;
 	const instructions* inst;
-	const uint32_t* label;	//7 chars long
+	const uint32_t* label;
 };
 
 const uint32_t boot_count = 1;
@@ -62,27 +67,6 @@ const uint32_t BoB1_label[] = {(uint32_t)l_B,(uint32_t)l_E,(uint32_t)l_H,(uint32
 								(uint32_t)l_C,(uint32_t)l_H,(uint32_t)l_A,(uint32_t)l_I,(uint32_t)l_N,(uint32_t)l_space,(uint32_t)l_C,(uint32_t)l_H,(uint32_t)l_O,(uint32_t)l_M,(uint32_t)l_P,(uint32_t)l_S,
 								(uint32_t)l_space,(uint32_t)l_G,(uint32_t)l_A,(uint32_t)l_T,(uint32_t)l_E,0 };
 const area BoB1 = { BoB1_count, BoB1_inst, BoB1_label };
-
-const uint32_t jump_count = 3;
-const instructions jump_kick[jump_count] = { { 0x1, 2}, {0x4, 45}, {0x0, 45} };
-const char* jump_label = "jumping";
-//const area jumps = { jump_count, jump_kick, jump_label };
-
-const uint32_t end_count = 2;
-const instructions end_stand[end_count] = { {0x0,15 },{0x0,15 } };
-const char* end_label = "fin    ";
-//const area end = { end_count, end_stand,end_label };
-
-//This just loads the savestate
-const uint32_t d_up_count = 2;
-const instructions d_up_area[d_up_count] = { {0x10,3},{0x0,20} };
-const char* d_up_label = "d_up   ";
-//const area d_up = { d_up_count, d_up_area,d_up_label };
-
-const uint32_t L_R_count = 1;
-const instructions L_R_inst[L_R_count] = { {0xc00,4} };
-const char* L_R_label = "L_R    ";
-//const area L_R = { L_R_count, L_R_inst,L_R_label };
 
 const uint32_t crap_count = 2;
 const instructions crap_inst[crap_count] = { {0xFFFFFFFF,1},{0,1} };

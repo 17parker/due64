@@ -3,6 +3,12 @@ controller joystick x / y is capable of values 0x80 - 0x7F (-128 to 127)
 In reality, it is only capable of about +/- 72 (one resource says -81 to 81)
 */
 
+/*
+	THESE ARE LOCAL COPIES OF THE HEADERS
+	ANY CHANGES TO THESE WILL NOT APPEAR IN THE GLOBAL HEADERS
+	ANY CHANGES TO THE GLOBAL WILL NOT APPEAR HERE
+	I am marking this project as "done" and do not intend to come back to it
+*/
 #include "SAM3XDUE.h"
 #include "tas_data.h"
 #include "tasmc.h"
